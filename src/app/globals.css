@@ -151,7 +151,7 @@ select:focus {
 
 /*
  * Placeholder photo de plat (README § Espacement, rayons, ombres) : motif
- * rayé tant qu'un MenuItem/Order n'a pas d'imageUrl Cloudinary.
+ * rayé tant qu'un MenuItem n'a pas de photo Cloudinary (images[0]).
  */
 .placeholder-photo {
   background: repeating-linear-gradient(44deg, #f6e3d6 0 12px, #efd6c6 12px 24px);

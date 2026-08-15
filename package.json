@@ -10,6 +10,8 @@
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:pickup-zone": "tsx prisma/seed-pickup-zone.ts",
+    "db:seed:restore-featured-images": "tsx prisma/seed-restore-featured-images.ts",
     "db:studio": "prisma studio"
   },
   "dependencies": {
@@ -28,6 +30,7 @@
     "react-dom": "19.2.4",
     "resend": "^6.20.0",
     "sonner": "^2.0.7",
+    "swiper": "^14.1.0",
     "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3"
   },

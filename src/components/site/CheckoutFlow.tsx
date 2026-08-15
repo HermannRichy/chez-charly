@@ -11,11 +11,13 @@ type PaymentMethod = { provider: "MOMO" | "MOOV"; label: string; number: string;
 export function CheckoutFlow({
   total,
   zoneName,
+  isPickup,
   paymentMethods,
   initialCustomer,
 }: {
   total: number;
   zoneName: string;
+  isPickup: boolean;
   paymentMethods: PaymentMethod[];
   initialCustomer: { name: string; phone: string; address: string } | null;
 }) {
@@ -26,8 +28,10 @@ export function CheckoutFlow({
   const [name, setName] = useState(initialCustomer?.name ?? "");
   const [phone, setPhone] = useState(initialCustomer?.phone ?? "");
   const [address, setAddress] = useState(initialCustomer?.address ?? "");
+  const canContinueStep1 = isPickup ? !!name && !!phone : !!name && !!phone && !!address;
   const [payId, setPayId] = useState<"MOMO" | "MOOV">("MOMO");
   const [ref, setRef] = useState("");
+  const [note, setNote] = useState("");
   const [proofUrl, setProofUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [confirming, startConfirm] = useTransition();
@@ -46,7 +50,7 @@ export function CheckoutFlow({
       setProofUrl(json.url);
       toast("Capture jointe");
     } catch (err) {
-      toast(err instanceof Error ? err.message : "Upload échoué — indiquez la référence à la place.");
+      toast(err instanceof Error ? err.message : "Upload échoué - indiquez la référence à la place.");
     } finally {
       setUploading(false);
     }
@@ -58,12 +62,13 @@ export function CheckoutFlow({
         const { orderNumber } = await confirmOrderAction({
           customerName: name,
           customerPhone: phone,
-          address,
+          address: isPickup ? "Retrait au resto" : address,
           paymentMethod: payId,
           transactionRef: ref,
           proofImageUrl: proofUrl ?? undefined,
+          note: note.trim() || undefined,
         });
-        toast(`Commande confirmée — ${orderNumber}`);
+        toast(`Commande confirmée - ${orderNumber}`);
         router.push(`/suivi/${orderNumber}`);
       } catch (err) {
         toast(err instanceof Error ? err.message : "Impossible de confirmer la commande.");
@@ -99,14 +104,21 @@ export function CheckoutFlow({
                 className="border-[1.5px] border-border-mid rounded-[13px] px-3.5 py-3.25 text-[15px] text-ink bg-[#FFFBF7]"
               />
             </label>
-            <label className="grid gap-1.75 text-xs font-extrabold tracking-[.1em] text-label col-span-full">
-              ADRESSE — {zoneName}
-              <input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="border-[1.5px] border-border-mid rounded-[13px] px-3.5 py-3.25 text-[15px] text-ink bg-[#FFFBF7]"
-              />
-            </label>
+            {isPickup ? (
+              <div className="col-span-full bg-cream-2 rounded-[13px] px-3.5 py-3.25 text-[14.5px] text-[#4A2318]">
+                Retrait sur place - aucune adresse à saisir. Vous récupérez votre commande directement au
+                restaurant, Womey Adjikpegon.
+              </div>
+            ) : (
+              <label className="grid gap-1.75 text-xs font-extrabold tracking-[.1em] text-label col-span-full">
+                ADRESSE - {zoneName}
+                <input
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  className="border-[1.5px] border-border-mid rounded-[13px] px-3.5 py-3.25 text-[15px] text-ink bg-[#FFFBF7]"
+                />
+              </label>
+            )}
           </div>
 
           <div className="text-xs font-extrabold tracking-[.1em] text-label mt-6 mb-2.5">
@@ -138,7 +150,7 @@ export function CheckoutFlow({
             <button
               type="button"
               onClick={() => setStep(2)}
-              disabled={!name || !phone || !address}
+              disabled={!canContinueStep1}
               className="border-0 bg-ink text-cream px-7 py-4 rounded-full text-[15.5px] font-extrabold hover:bg-deep disabled:opacity-50"
             >
               Continuer · {fmt(total)}
@@ -201,7 +213,7 @@ export function CheckoutFlow({
                   {uploading ? "Envoi en cours…" : "Joindre la capture du reçu"}
                 </div>
                 <div className="text-[12.5px] text-text-tertiary">
-                  PNG ou JPG — facultatif si la référence est saisie
+                  PNG ou JPG - facultatif si la référence est saisie
                 </div>
               </div>
               {proofUrl && (
@@ -210,6 +222,18 @@ export function CheckoutFlow({
                 </span>
               )}
             </button>
+
+            <label className="grid gap-1.75 text-xs font-extrabold tracking-[.1em] text-label">
+              MESSAGE POUR LE RESTAURANT (FACULTATIF)
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                maxLength={500}
+                rows={3}
+                placeholder="Ex. sans piment, sonner à l'arrivée, allergie aux arachides…"
+                className="border-[1.5px] border-border-mid rounded-[13px] px-3.5 py-3.25 text-[15px] text-ink bg-[#FFFBF7] resize-none"
+              />
+            </label>
           </div>
 
           <div className="flex items-center gap-4.5 mt-6.5 flex-wrap">

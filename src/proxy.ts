@@ -11,32 +11,29 @@ import { getSessionCookie } from "better-auth/cookies";
 //   renvoyé vers "/" à ce niveau-là, pas ici).
 // - /commande, /fidelite, /suivi (index) exigent une session client.
 // - /suivi/[id] reste public : c'est un lien de suivi partageable (README).
-const AUTH_ROUTES = ["/login", "/signup"];
+//
+// Le cas inverse ("déjà connecté → dégager de /login") n'est PAS traité ici :
+// un cookie présent mais dont la session correspondante n'existe plus en base
+// (DB réinitialisée, session expirée) ferait sinon boucler indéfiniment entre
+// ce contrôle optimiste et la vraie vérification côté page (getSessionUser),
+// qui elle constate que la session est invalide et renvoie vers /login.
+// Cette redirection "déjà connecté" est donc gérée dans /login et /signup
+// eux-mêmes, avec la même vérification réelle que le reste de l'app.
 
 function isProtectedRoute(path: string) {
   if (path === "/admin" || path.startsWith("/admin/")) return true;
   if (path === "/commande" || path === "/fidelite" || path === "/suivi") return true;
+  if (path === "/compte" || path.startsWith("/compte/")) return true;
   return false;
-}
-
-function isAuthRoute(path: string) {
-  return AUTH_ROUTES.some((r) => path === r);
 }
 
 export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
-  const isAuthenticated = !!getSessionCookie(req);
 
-  if (isProtectedRoute(path) && !isAuthenticated) {
+  if (isProtectedRoute(path) && !getSessionCookie(req)) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("callbackUrl", path);
-    return NextResponse.redirect(url);
-  }
-
-  if (isAuthRoute(path) && isAuthenticated) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/";
     return NextResponse.redirect(url);
   }
 

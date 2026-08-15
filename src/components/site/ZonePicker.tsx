@@ -8,7 +8,7 @@ export function ZonePicker({
   zones,
   selectedId,
 }: {
-  zones: { id: string; name: string; fee: number; etaLabel: string }[];
+  zones: { id: string; name: string; fee: number; etaLabel: string; isPickup: boolean }[];
   selectedId: string;
 }) {
   const [pending, startTransition] = useTransition();
@@ -23,13 +23,27 @@ export function ZonePicker({
             type="button"
             disabled={pending}
             onClick={() => startTransition(() => selectZoneAction(z.id))}
-            className="text-left border border-white/18 bg-white/6 text-cream rounded-[14px] px-3.5 py-2.75 flex items-center gap-2.5 hover:border-orange disabled:opacity-70"
+            aria-pressed={active}
+            className={
+              active
+                ? "text-left border-[1.5px] border-orange bg-orange/14 text-cream rounded-[14px] px-3.5 py-2.75 flex items-center gap-2.5 disabled:opacity-70"
+                : "text-left border border-white/18 bg-white/6 text-cream rounded-[14px] px-3.5 py-2.75 flex items-center gap-2.5 hover:border-orange disabled:opacity-70"
+            }
           >
             <div className="flex-1">
-              <div className="text-[13.5px] font-bold">{z.name}</div>
+              <div className="text-[13.5px] font-bold flex items-center gap-2">
+                {z.name}
+                {z.isPickup && (
+                  <span className="text-[10px] font-extrabold text-ink bg-[#6FE39B] px-1.75 py-0.5 rounded-full">
+                    RETRAIT
+                  </span>
+                )}
+              </div>
               <div className="text-[11.5px] text-[#C6A292]">{z.etaLabel}</div>
             </div>
-            <span className="text-[13px] font-extrabold text-orange">{fmt(z.fee)}</span>
+            <span className="text-[13px] font-extrabold text-orange">
+              {z.fee === 0 ? "Gratuit" : fmt(z.fee)}
+            </span>
             {active && <span className="w-2.25 h-2.25 rounded-full bg-[#6FE39B]" />}
           </button>
         );

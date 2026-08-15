@@ -17,6 +17,7 @@ const schema = z
     paymentMethod: z.enum(["MOMO", "MOOV"]),
     transactionRef: z.string().trim().optional(),
     proofImageUrl: z.string().trim().optional(),
+    note: z.string().trim().max(500, { message: "Message trop long (500 caractères max)" }).optional(),
   })
   .refine((d) => (d.transactionRef?.length ?? 0) > 3 || !!d.proofImageUrl, {
     message: "Renseignez la référence de la transaction ou joignez une capture.",
@@ -78,6 +79,7 @@ export async function confirmOrderAction(
         paymentMethod: data.paymentMethod as PaymentProvider,
         transactionRef: data.transactionRef || "",
         proofImageUrl: data.proofImageUrl || null,
+        note: data.note || "",
         verified: false,
         pointsAwarded,
         items: {

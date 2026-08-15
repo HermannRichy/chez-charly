@@ -20,6 +20,7 @@ export default async function SuiviDetailPage({ params }: { params: Promise<{ id
       itemsLabel={itemsLabel}
       zoneName={order.zone.name}
       zoneEta={order.zone.etaLabel}
+      isPickup={order.zone.isPickup}
       initialStatus={order.status}
       initialTotal={order.total}
     />

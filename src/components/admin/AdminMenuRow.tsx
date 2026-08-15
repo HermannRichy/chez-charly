@@ -1,46 +1,65 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { useState, useTransition } from "react";
+import { IconStarFilled } from "@tabler/icons-react";
 import {
   updateMenuItemNameAction,
   updateMenuItemPriceAction,
   toggleMenuItemAction,
-  setMenuItemPhotoAction,
   deleteMenuItemAction,
 } from "@/app/admin/(protected)/menu/actions";
+import { AdminMenuItemEditor, type EditableMenuItem } from "@/components/admin/AdminMenuItemEditor";
 
 export function AdminMenuRow({
   item,
 }: {
-  item: { id: string; name: string; price: number; category: string; active: boolean; imageUrl: string | null };
+  item: {
+    id: string;
+    name: string;
+    note: string;
+    price: number;
+    category: string;
+    active: boolean;
+    featured: boolean;
+    images: string[];
+  };
 }) {
   const [name, setName] = useState(item.name);
   const [price, setPrice] = useState(item.price.toString());
-  const [uploading, setUploading] = useState(false);
   const [pending, startTransition] = useTransition();
-  const fileInput = useRef<HTMLInputElement>(null);
+  const [editing, setEditing] = useState(false);
 
-  async function handlePhoto(file: File) {
-    setUploading(true);
-    try {
-      const form = new FormData();
-      form.append("file", file);
-      form.append("folder", "dishes");
-      const res = await fetch("/api/upload", { method: "POST", body: form });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Upload échoué");
-      await setMenuItemPhotoAction(item.id, json.url);
-      toast("Photo mise à jour");
-    } catch (err) {
-      toast(err instanceof Error ? err.message : "Upload échoué");
-    } finally {
-      setUploading(false);
-    }
-  }
+  const editableItem: EditableMenuItem = {
+    id: item.id,
+    name: item.name,
+    note: item.note,
+    featured: item.featured,
+    images: item.images,
+  };
 
   return (
     <div className="bg-admin-surface border border-admin-text/9 rounded-2xl px-3.5 py-3 flex flex-wrap gap-2.5 gap-x-3 items-center">
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        className="relative w-11 h-11 shrink-0 rounded-xl overflow-hidden bg-admin-bg border border-admin-text/15"
+        aria-label="Gérer les photos"
+      >
+        {item.images[0] ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={item.images[0]} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <span className="absolute inset-0 grid place-items-center text-admin-text-4 text-[9px] font-bold">
+            Photo
+          </span>
+        )}
+        {item.featured && (
+          <span className="absolute -top-1 -right-1 w-4.5 h-4.5 grid place-items-center rounded-full bg-orange text-white">
+            <IconStarFilled size={10} />
+          </span>
+        )}
+      </button>
+
       <div className="text-[11.5px] font-extrabold tracking-[.06em] text-admin-text-4 shrink-0">
         {item.category}
       </div>
@@ -65,23 +84,12 @@ export function AdminMenuRow({
         <span className="text-[12.5px] text-admin-text-4">F</span>
       </div>
 
-      <input
-        ref={fileInput}
-        type="file"
-        accept="image/png,image/jpeg"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) handlePhoto(file);
-        }}
-      />
       <button
         type="button"
-        disabled={uploading}
-        onClick={() => fileInput.current?.click()}
-        className="border border-admin-text/20 bg-transparent text-admin-text-2 px-3 py-2 rounded-full text-[11.5px] font-extrabold disabled:opacity-60"
+        onClick={() => setEditing(true)}
+        className="border border-admin-text/20 bg-transparent text-admin-text-2 px-3.5 py-2 rounded-full text-[11.5px] font-extrabold"
       >
-        {uploading ? "…" : item.imageUrl ? "Changer photo" : "Ajouter photo"}
+        Gérer
       </button>
 
       <button
@@ -101,6 +109,8 @@ export function AdminMenuRow({
       >
         ×
       </button>
+
+      {editing && <AdminMenuItemEditor item={editableItem} onClose={() => setEditing(false)} />}
     </div>
   );
 }

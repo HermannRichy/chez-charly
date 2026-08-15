@@ -2,8 +2,9 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 /**
- * Photo de plat : motif rayé tant que `imageUrl` (Cloudinary) est absent —
- * le client gère ses photos lui-même via le dashboard (README).
+ * Photo de plat : motif rayé tant qu'aucune image Cloudinary n'est définie
+ * (`MenuItem.images`) — le client gère ses photos lui-même via le dashboard
+ * (README).
  */
 export function PlaceholderPhoto({
   src,

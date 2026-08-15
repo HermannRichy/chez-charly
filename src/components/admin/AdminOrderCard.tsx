@@ -20,6 +20,7 @@ export function AdminOrderCard({
     total: number;
     paymentMethod: PaymentProvider;
     transactionRef: string;
+    note: string;
     verified: boolean;
     status: OrderStatus;
   };
@@ -27,7 +28,8 @@ export function AdminOrderCard({
   const [pending, startTransition] = useTransition();
 
   return (
-    <div className="bg-admin-surface border border-admin-text/10 rounded-[20px] p-4.5 grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-4 items-center">
+    <div className="bg-admin-surface border border-admin-text/10 rounded-[20px] p-4.5">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-4 items-center">
       <div>
         <div className="font-grifter text-xl text-admin-text">{order.orderNumber}</div>
         <div className="text-[11.5px] text-admin-text-4">{order.ageLabel}</div>
@@ -45,7 +47,7 @@ export function AdminOrderCard({
         <div className="font-grifter text-[22px] text-orange">{fmt(order.total)}</div>
         <div className="text-[12.5px] text-admin-text-3">
           {order.paymentMethod === "MOMO" ? "MTN MoMo" : "Moov Money"} ·{" "}
-          {order.transactionRef || "—"}
+          {order.transactionRef || "-"}
         </div>
         {order.verified ? (
           <span className="inline-block mt-1.5 text-[10.5px] font-extrabold text-admin-bg bg-[#6FE39B] px-2.25 py-1 rounded-full">
@@ -86,6 +88,14 @@ export function AdminOrderCard({
           </button>
         </div>
       </div>
+    </div>
+
+    {order.note && (
+      <div className="mt-3.5 bg-amber/14 border border-amber/40 rounded-[14px] px-3.75 py-3">
+        <div className="text-[10.5px] font-extrabold tracking-[.1em] text-amber">MESSAGE DU CLIENT</div>
+        <div className="text-[13.5px] text-admin-text mt-1">{order.note}</div>
+      </div>
+    )}
     </div>
   );
 }

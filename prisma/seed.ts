@@ -92,13 +92,15 @@ async function main() {
           category: group.category,
           active: true,
           featured: name in FEATURED,
-          imageUrl: FEATURED[name] ?? null,
+          images: FEATURED[name] ? [FEATURED[name]] : [],
         },
       });
     }
   }
 
   console.log("Seed — zones de livraison");
+  // Le retrait au resto est ajouté séparément par prisma/seed-pickup-zone.ts
+  // (garde ce fichier-ci centré sur les données de lancement d'origine).
   const zones: { name: string; fee: number; etaLabel: string }[] = [
     { name: "Abomey-Calavi centre", fee: 500, etaLabel: "20–30 min" },
     { name: "Womey", fee: 300, etaLabel: "10–20 min" },

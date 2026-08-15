@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getCart } from "@/lib/cart";
 import { getSelectedZone } from "@/lib/zone";
 import { getSettings, computeFee, computePoints } from "@/lib/pricing";
-import { fmt } from "@/lib/format";
+import { fmt, fmtNumber } from "@/lib/format";
 import { PlaceholderPhoto } from "@/components/site/PlaceholderPhoto";
 import { MenuLineControls } from "@/components/site/MenuLineControls";
 import { ClearCartButton } from "@/components/site/ClearCartButton";
@@ -71,8 +71,10 @@ export default async function PanierPage() {
                 <b>{fmt(cart.subtotal)}</b>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#D9B7A7]">Livraison · {zone?.name ?? "—"}</span>
-                <b>{fee === 0 ? "Offerte" : fmt(fee)}</b>
+                <span className="text-[#D9B7A7]">
+                  {zone?.isPickup ? "Retrait au resto" : `Livraison · ${zone?.name ?? "-"}`}
+                </span>
+                <b>{fee === 0 ? "Gratuit" : fmt(fee)}</b>
               </div>
               <div className="h-px bg-white/16" />
               <div className="flex justify-between items-baseline">
@@ -82,12 +84,12 @@ export default async function PanierPage() {
             </div>
 
             <div className="mt-4 bg-orange/16 border border-orange/36 rounded-[14px] px-3.5 py-3 text-[13px] text-[#FFD9C4]">
-              Cette commande vous rapporte <b className="text-white">+{gained} pts</b> · livraison
+              Cette commande vous rapporte <b className="text-white">+{fmtNumber(gained)} pts</b> · livraison
               offerte dès {fmt(settings.freeFrom)}
             </div>
 
             <div className="text-xs font-extrabold tracking-[.12em] text-label mt-5.5 mb-2.5">
-              ZONE DE LIVRAISON
+              LIVRAISON OU RETRAIT
             </div>
             <ZonePicker zones={zoneData?.zones ?? []} selectedId={zone?.id ?? ""} />
 

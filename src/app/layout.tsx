@@ -22,7 +22,7 @@ const archivo = Archivo({
 });
 
 export const metadata: Metadata = {
-  title: "Chez Charly — Toujours bien chargé",
+  title: "Chez Charly - Toujours bien chargé",
   description:
     "Attiéké poisson, riz aileron, alloco brûlant. Commandez en ligne, payez par MoMo, on livre à Calavi.",
   icons: {
@@ -38,7 +38,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${grifter.variable} ${archivo.variable}`}>
+    <html
+      lang="fr"
+      data-scroll-behavior="smooth"
+      className={`${grifter.variable} ${archivo.variable}`}
+    >
       <body>
         {children}
         <Toaster

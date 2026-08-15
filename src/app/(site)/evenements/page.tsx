@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
+import { fmt, fmtNumber } from "@/lib/format";
 
 export default function EvenementsPage() {
   return (
@@ -29,13 +30,13 @@ export default function EvenementsPage() {
             </h1>
             <p className="text-lg leading-[1.55] text-[#E4C6B7] max-w-120 mt-5 text-pretty">
               Chez Charly & Moriland CITY remettent le couvert. Chill, plat d&apos;attiéké bien
-              chargé, shooting photo, jeux et réseautage — au bord de l&apos;eau à Hêvié.
+              chargé, shooting photo, jeux et réseautage - au bord de l&apos;eau à Hêvié.
             </p>
 
             <div className="flex flex-wrap gap-2.5 mt-6.5">
               <div className="bg-[#8CC63F] text-[#12250A] px-4.5 py-3 rounded-[14px]">
                 <div className="text-[10.5px] font-extrabold tracking-[.1em] opacity-70">PRIX</div>
-                <div className="font-grifter text-2xl leading-tight">3 500 F</div>
+                <div className="font-grifter text-2xl leading-tight">{fmt(3500)}</div>
               </div>
               <div className="bg-orange text-white px-4.5 py-3 rounded-[14px]">
                 <div className="text-[10.5px] font-extrabold tracking-[.1em] opacity-80">DATE</div>
@@ -62,7 +63,7 @@ export default function EvenementsPage() {
               </a>
             </div>
             <div className="text-[13.5px] text-[#B9917F] mt-4">
-              Moriland CITY, Hêvié — von de la pharmacie Hêvié. Un pass acheté = 35 points de
+              Moriland CITY, Hêvié - von de la pharmacie Hêvié. Un pass acheté = 35 points de
               fidélité.
             </div>
           </div>
@@ -93,10 +94,10 @@ export default function EvenementsPage() {
         </h2>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-3.5 mt-7.5">
           {[
-            { title: "Plat d'attiéké", body: "Bien chargé — poisson, poulet ou viande, servi sur place." },
+            { title: "Plat d'attiéké", body: "Bien chargé - poisson, poulet ou viande, servi sur place." },
             { title: "Chill & musique", body: "Ambiance détendue, bonne playlist, cadre ouvert." },
             { title: "Shooting photo", body: "Un coin décor pour repartir avec vos photos." },
-            { title: "Jeux & réseautage", body: "Défis, rencontres — on repart avec des contacts." },
+            { title: "Jeux & réseautage", body: "Défis, rencontres - on repart avec des contacts." },
           ].map((item) => (
             <Reveal key={item.title} className="bg-peach rounded-[22px] p-6">
               <div className="font-grifter text-2xl text-deep">{item.title}</div>
@@ -112,11 +113,11 @@ export default function EvenementsPage() {
             <div>
               <div className="text-xs font-extrabold tracking-[.14em] text-deep">ÉDITION PRÉCÉDENTE</div>
               <h2 className="font-grifter text-[clamp(30px,4vw,48px)] mt-3 leading-[.98] text-ink">
-                Le RDV de l&apos;Attiéké — 28 juin
+                Le RDV de l&apos;Attiéké - 28 juin
               </h2>
               <p className="text-base text-[#6A392C] mt-2.5">
-                L&apos;Olympe, sur les pavés menant à Godomey. Pass 3 500 / 5 000 / 10 000 F,
-                complet.
+                L&apos;Olympe, sur les pavés menant à Godomey. Pass {fmtNumber(3500)} /{" "}
+                {fmtNumber(5000)} / {fmt(10000)}, complet.
               </p>
             </div>
             <Link

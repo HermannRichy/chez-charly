@@ -9,9 +9,9 @@ export async function getSelectedZone() {
 
   const zoneId = (await cookies()).get(ZONE_COOKIE)?.value;
   const found = zoneId ? zones.find((z) => z.id === zoneId) : undefined;
-  // Zone la plus proche du restaurant par défaut (Womey/Adjikpegon dans le
-  // design) plutôt que la première de la liste alphabétique/admin.
-  const fallback = zones.find((z) => z.name.startsWith("Womey")) ?? zones[0];
+  // Calavi Centre par défaut plutôt que le retrait ou la première zone de la
+  // liste admin — c'est la zone la plus représentative du client type.
+  const fallback = zones.find((z) => z.name.startsWith("Abomey-Calavi")) ?? zones[0];
   return { zones, selected: found ?? fallback };
 }
 

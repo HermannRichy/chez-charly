@@ -5,6 +5,7 @@ import { getSettings } from "@/lib/pricing";
 import { fmt } from "@/lib/format";
 import { AddToCartButton } from "@/components/site/AddToCartButton";
 import { MenuLineControls } from "@/components/site/MenuLineControls";
+import { MenuCategoryFilter } from "@/components/site/MenuCategoryFilter";
 
 export default async function MenuPage({
   searchParams,
@@ -33,11 +34,15 @@ export default async function MenuPage({
     <div className="max-w-310 mx-auto px-4 pt-[clamp(34px,6vw,56px)] pb-[clamp(56px,8vw,92px)]">
       <h1 className="font-grifter text-[clamp(44px,6vw,84px)] leading-[.9] text-deep">Liste de menu</h1>
       <p className="text-[17px] text-[#6A392C] mt-3.5">
-        Prix en francs CFA. Chaque plat vous rapporte des points — 1 point par {fmt(settings.ptsPerUnit)}{" "}
+        Prix en francs CFA. Chaque plat vous rapporte des points - 1 point par {fmt(settings.ptsPerUnit)}{" "}
         dépensés.
       </p>
 
-      <div className="flex gap-2.25 flex-wrap my-7.5 sticky top-[74px] z-40 bg-cream py-2.5 overflow-x-auto [scrollbar-width:none]">
+      <div className="my-7.5">
+        <MenuCategoryFilter categories={categories} activeCat={activeCat} />
+      </div>
+
+      <div className="hidden md:flex gap-2.25 flex-wrap mb-7.5 sticky top-18.5 z-40 bg-cream py-2.5 overflow-x-auto scrollbar-none">
         {["Tout", ...categories].map((c) => {
           const active = activeCat === c;
           const href = c === "Tout" ? "/menu" : `/menu?cat=${encodeURIComponent(c)}`;

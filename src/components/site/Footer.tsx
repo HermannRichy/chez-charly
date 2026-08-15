@@ -9,9 +9,9 @@ export function Footer() {
           <Image
             src="/logo-charly-nb.png"
             alt="Chez Charly"
-            height={74}
-            width={200}
-            className="h-18.5 w-auto brightness-0 invert opacity-[.92]"
+            height={116}
+            width={116}
+            className="h-29 w-auto brightness-0 invert opacity-[.92]"
           />
           <p className="text-sm leading-relaxed max-w-[320px] mt-3.5">
             Maquis & livraison à Abomey-Calavi. Toujours bien chargé, depuis le premier plat.
@@ -46,7 +46,7 @@ export function Footer() {
               +229 01 61 55 57 22
             </a>
             <span>Womey Adjikpegon, Abomey-Calavi</span>
-            <span>Tous les jours · 10 h — 23 h</span>
+            <span>Tous les jours · 10 h - 23 h</span>
             <span>MTN MoMo · Moov Money</span>
           </div>
         </div>

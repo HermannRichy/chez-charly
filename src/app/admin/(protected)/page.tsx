@@ -30,6 +30,7 @@ export default async function AdminOrdersPage() {
               total: o.total,
               paymentMethod: o.paymentMethod,
               transactionRef: o.transactionRef,
+              note: o.note,
               verified: o.verified,
               status: o.status,
             }}

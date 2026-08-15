@@ -13,6 +13,7 @@ export function OrderTracking({
   itemsLabel,
   zoneName,
   zoneEta,
+  isPickup,
   initialStatus,
   initialTotal,
 }: {
@@ -20,6 +21,7 @@ export function OrderTracking({
   itemsLabel: string;
   zoneName: string;
   zoneEta: string;
+  isPickup: boolean;
   initialStatus: OrderStatus;
   initialTotal: number;
 }) {
@@ -51,7 +53,7 @@ export function OrderTracking({
         {orderNumber} · {STATUS_TRACK_LABEL[status]}
       </h1>
       <p className="text-base text-[#6A392C] mt-3">
-        {itemsLabel} — livraison {zoneName}, {zoneEta}.
+        {itemsLabel} - {isPickup ? `retrait au resto, ${zoneEta}` : `livraison ${zoneName}, ${zoneEta}`}.
       </p>
 
       <div className="bg-white border border-border-light rounded-[26px] p-[clamp(20px,4vw,30px)] mt-6.5">

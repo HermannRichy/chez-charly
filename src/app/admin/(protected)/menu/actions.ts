@@ -32,6 +32,12 @@ export async function updateMenuItemPriceAction(id: string, price: number) {
   revalidate();
 }
 
+export async function updateMenuItemNoteAction(id: string, note: string) {
+  await requireStaff();
+  await prisma.menuItem.update({ where: { id }, data: { note } });
+  revalidate();
+}
+
 export async function toggleMenuItemAction(id: string) {
   await requireStaff();
   const item = await prisma.menuItem.findUniqueOrThrow({ where: { id }, select: { active: true } });
@@ -39,9 +45,39 @@ export async function toggleMenuItemAction(id: string) {
   revalidate();
 }
 
-export async function setMenuItemPhotoAction(id: string, imageUrl: string) {
+export async function toggleFeaturedAction(id: string) {
   await requireStaff();
-  await prisma.menuItem.update({ where: { id }, data: { imageUrl } });
+  const item = await prisma.menuItem.findUniqueOrThrow({ where: { id }, select: { featured: true } });
+  await prisma.menuItem.update({ where: { id }, data: { featured: !item.featured } });
+  revalidate();
+}
+
+/** Ajoute une photo à la fin de la galerie — la première reste la photo principale. */
+export async function addMenuItemImageAction(id: string, url: string) {
+  await requireStaff();
+  const item = await prisma.menuItem.findUniqueOrThrow({ where: { id }, select: { images: true } });
+  await prisma.menuItem.update({ where: { id }, data: { images: [...item.images, url] } });
+  revalidate();
+}
+
+export async function removeMenuItemImageAction(id: string, url: string) {
+  await requireStaff();
+  const item = await prisma.menuItem.findUniqueOrThrow({ where: { id }, select: { images: true } });
+  await prisma.menuItem.update({
+    where: { id },
+    data: { images: item.images.filter((i) => i !== url) },
+  });
+  revalidate();
+}
+
+/** Remonte une photo existante en première position (= photo principale). */
+export async function setPrimaryImageAction(id: string, url: string) {
+  await requireStaff();
+  const item = await prisma.menuItem.findUniqueOrThrow({ where: { id }, select: { images: true } });
+  await prisma.menuItem.update({
+    where: { id },
+    data: { images: [url, ...item.images.filter((i) => i !== url)] },
+  });
   revalidate();
 }
 

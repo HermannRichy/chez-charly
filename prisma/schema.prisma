@@ -4,6 +4,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  // URLs (dont directUrl, nécessaire pour "migrate" sur Neon) définies dans
+  // prisma.config.ts, pas ici — Prisma 7 ne supporte plus url/directUrl dans
+  // le fichier de schéma.
 }
 
 // ─── Enums ─────────────────────────────────────────────────────────────────
@@ -116,7 +119,8 @@ model MenuItem {
   active    Boolean  @default(true)
   /// Mis en avant sur l'accueil ("Les plats qu'on réclame le plus") — 4 plats maximum côté design.
   featured  Boolean  @default(false)
-  imageUrl  String?
+  /// Photos Cloudinary : la première est la photo principale (grille menu, carte vedette, slider).
+  images    String[] @default([])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -130,6 +134,8 @@ model DeliveryZone {
   name      String
   fee       Int
   etaLabel  String
+  /// "Retrait au resto" plutôt qu'une vraie zone de livraison : fee=0, pas d'adresse requise au checkout.
+  isPickup  Boolean  @default(false)
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -197,6 +203,8 @@ model Order {
   paymentMethod  PaymentProvider
   transactionRef String          @default("")
   proofImageUrl  String?
+  /// Message facultatif du client au restaurant (allergie, instruction de livraison...).
+  note           String          @default("")
   verified       Boolean         @default(false)
   status         OrderStatus     @default(RECEIVED)
   pointsAwarded  Int             @default(0)

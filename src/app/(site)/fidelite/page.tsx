@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireClient } from "@/lib/session";
 import { getSettings, nextTier } from "@/lib/pricing";
-import { fmt } from "@/lib/format";
+import { fmt, fmtNumber } from "@/lib/format";
 import { LoyaltyWheel } from "@/components/site/LoyaltyWheel";
 
 export default async function FidelitePage() {
@@ -37,13 +37,13 @@ export default async function FidelitePage() {
             </div>
             <div className="flex items-baseline gap-3 mt-3.5">
               <div className="font-grifter text-[clamp(62px,14vw,88px)] leading-[.9] text-cream">
-                {user.points}
+                {fmtNumber(user.points)}
               </div>
               <div className="font-grifter text-[26px] text-orange">pts</div>
             </div>
             <div className="text-[14.5px] text-[#D9B7A7] mt-2">
               1 point par {fmt(settings.ptsPerUnit)} dépensés
-              {tier && ` · encore ${remaining} pts avant le ${tier.name}`}
+              {tier && ` · encore ${fmtNumber(remaining)} pts avant le ${tier.name}`}
             </div>
             <div className="h-3 rounded-full bg-white/14 mt-5 overflow-hidden">
               <div
@@ -61,7 +61,7 @@ export default async function FidelitePage() {
                 key={t.id}
                 className="flex items-center flex-wrap gap-2 gap-x-3.5 bg-white/7 border border-white/14 rounded-[18px] px-4.25 py-3.75"
               >
-                <div className="font-grifter text-xl text-orange min-w-19.5">{t.threshold} pts</div>
+                <div className="font-grifter text-xl text-orange min-w-19.5">{fmtNumber(t.threshold)} pts</div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-extrabold">{t.name}</div>
                   <div className="text-[12.5px] text-[#D9B7A7]">{t.reward}</div>
@@ -89,7 +89,7 @@ export default async function FidelitePage() {
             <div className="font-grifter text-2xl text-deep">Comment gagner plus vite</div>
             <div className="grid gap-3 mt-4">
               {[
-                "Commandez en ligne plutôt qu'au comptoir — les points ne tombent que sur l'app.",
+                "Commandez en ligne plutôt qu'au comptoir - les points ne tombent que sur l'app.",
                 "Groupez la commande du bureau : le total compte, pas le nombre de plats.",
                 "Les mardis chargés : points doublés sur l'attiéké, annoncé depuis le dashboard.",
               ].map((tip, i) => (
@@ -116,7 +116,7 @@ export default async function FidelitePage() {
                     <span className="text-text-secondary">{tx.reason}</span>
                     <b className={tx.delta >= 0 ? "text-[#21A85B]" : "text-deep"}>
                       {tx.delta >= 0 ? "+" : ""}
-                      {tx.delta} pts
+                      {fmtNumber(tx.delta)} pts
                     </b>
                   </div>
                 ))

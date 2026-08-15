@@ -38,6 +38,7 @@ export default async function CommandePage() {
       <CheckoutFlow
         total={total}
         zoneName={zone.name}
+        isPickup={zone.isPickup}
         paymentMethods={paymentMethods}
         initialCustomer={{
           name: user.name ?? "",
