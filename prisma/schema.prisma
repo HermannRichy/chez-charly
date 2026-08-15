@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ─────────────────────────────────────────────────────────────────
+
+enum OrderStatus {
+  RECEIVED // Commande reçue
+  PREPARING // En préparation
+  ON_THE_WAY // En route
+  DELIVERED // Livré
+}
+
+enum PaymentProvider {
+  MOMO // MTN MoMo
+  MOOV // Moov Money
+}
+
+enum Role {
+  STAFF // Accès au dashboard admin
+  CLIENT // Commande, fidélité — aucun accès admin
+}
+
+// ─── Better Auth — un seul compte, staff ET clients (cf. nextpress) ─────────
+// Le profil client du prototype (client{} → téléphone, adresse, points,
+// tours de roue) est porté directement par User plutôt que par un modèle
+// Customer séparé : mêmes champs additionnels que nextpress déclare via
+// `user.additionalFields` dans lib/auth.ts.
+
+model User {
+  id             String    @id
+  name           String
+  email          String    @unique
+  emailVerified  Boolean   @default(false)
+  image          String?
+  role           Role      @default(CLIENT)
+  /// Requis par le plugin `admin` de better-auth (bannissement de compte) — non exposés dans l'UI pour l'instant.
+  banned         Boolean?  @default(false)
+  banReason      String?
+  banExpires     DateTime?
+  phone          String?
+  address        String    @default("")
+  points         Int       @default(0)
+  spinsAvailable Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  sessions   Session[]
+  accounts   Account[]
+  orders     Order[]
+  loyaltyTxs LoyaltyTx[]
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id
+  userId                String
+  providerId            String
+  accountId             String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ─── Réglages (ligne singleton) ─────────────────────────────────────────────
+
+model Settings {
+  id         String @id @default("singleton")
+  /// Seuil de commande (F CFA) au-delà duquel la livraison est offerte, toutes zones confondues.
+  freeFrom   Int    @default(10000)
+  /// 1 point de fidélité gagné pour chaque `ptsPerUnit` F CFA dépensés.
+  ptsPerUnit Int    @default(100)
+}
+
+// ─── Menu ────────────────────────────────────────────────────────────────────
+
+model MenuItem {
+  id        String   @id @default(cuid())
+  name      String
+  price     Int
+  note      String   @default("")
+  category  String
+  active    Boolean  @default(true)
+  /// Mis en avant sur l'accueil ("Les plats qu'on réclame le plus") — 4 plats maximum côté design.
+  featured  Boolean  @default(false)
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orderItems OrderItem[]
+}
+
+// ─── Livraison ───────────────────────────────────────────────────────────────
+
+model DeliveryZone {
+  id        String   @id @default(cuid())
+  name      String
+  fee       Int
+  etaLabel  String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders Order[]
+}
+
+// ─── Moyens de paiement mobile money ────────────────────────────────────────
+// Les numéros du prototype sont des exemples : à remplacer en base avant lancement.
+
+model PaymentMethod {
+  id       String           @id @default(cuid())
+  provider PaymentProvider  @unique
+  label    String
+  number   String
+  holder   String
+
+  orders Order[]
+}
+
+// ─── Fidélité ────────────────────────────────────────────────────────────────
+
+model LoyaltyTier {
+  id        String   @id @default(cuid())
+  name      String
+  threshold Int
+  reward    String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WheelPrize {
+  id        String @id @default(cuid())
+  label     String
+  sortOrder Int    @unique
+}
+
+model LoyaltyTx {
+  id        String   @id @default(cuid())
+  userId    String
+  orderId   String?
+  delta     Int
+  reason    String
+  createdAt DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order Order? @relation(fields: [orderId], references: [id])
+}
+
+// ─── Commandes ───────────────────────────────────────────────────────────────
+
+model Order {
+  id             String          @id @default(cuid())
+  /// Identifiant lisible affiché au client et en admin, ex. "CC-2418".
+  orderNumber    String          @unique
+  userId         String
+  customerName   String
+  customerPhone  String
+  address        String
+  zoneId         String
+  subtotal       Int
+  deliveryFee    Int
+  total          Int
+  paymentMethod  PaymentProvider
+  transactionRef String          @default("")
+  proofImageUrl  String?
+  verified       Boolean         @default(false)
+  status         OrderStatus     @default(RECEIVED)
+  pointsAwarded  Int             @default(0)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  user        User          @relation(fields: [userId], references: [id])
+  zone        DeliveryZone  @relation(fields: [zoneId], references: [id])
+  paymentInfo PaymentMethod @relation(fields: [paymentMethod], references: [provider])
+  items       OrderItem[]
+  loyaltyTxs  LoyaltyTx[]
+}
+
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+  /// Nullable : reste consultable même si le plat est supprimé du menu plus tard.
+  menuItemId String?
+  /// Nom et prix figés au moment de la commande.
+  name    String
+  price   Int
+  qty     Int
+
+  order    Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem MenuItem? @relation(fields: [menuItemId], references: [id])
+}

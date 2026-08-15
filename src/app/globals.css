@@ -1,0 +1,158 @@
+@import "tailwindcss";
+
+/*
+ * Tokens de design — repris tels quels de extracted/design_handoff_chez_charly/README.md
+ * (§ Design tokens). Ce sont des couleurs de marque définitives, pas des
+ * placeholders.
+ */
+@theme {
+  --color-orange: #fb6117; /* Accent principal, CTA, prix secondaires */
+  --color-deep: #b71d29; /* Titres, prix, badges, bordures hero */
+  --color-ink: #24100c; /* Texte principal, fonds sombres, header panier */
+  --color-cream: #fff4ec; /* Fond global du site */
+  --color-cream-2: #ffeadc; /* Section "La maison", encarts */
+  --color-peach: #ffe4d3; /* Cartes du menu, steppers clairs */
+  --color-border-light: #f2ddd0; /* Bordures de cartes sur fond crème */
+  --color-border-mid: #ebd0bf;
+  --color-border-mid-2: #e7c9b6;
+  --color-border-mid-3: #e0bfac;
+  --color-text-secondary: #6a392c; /* Paragraphes */
+  --color-text-tertiary: #8a6154; /* Notes, méta */
+  --color-text-tertiary-2: #90604e;
+  --color-text-tertiary-3: #96604e;
+  --color-label: #a07862; /* Labels de champs */
+  --color-label-2: #b0806d;
+  --color-success-bg: #6fe39b; /* Badge "atteint", paiement vérifié */
+  --color-success-dot: #21a85b;
+  --color-amber: #ffc978; /* Bouton "valider le paiement" */
+  --color-admin-bg: #16100e;
+  --color-admin-surface: #211714;
+  --color-admin-text: #f3e4da;
+  --color-admin-text-2: #d5bdb0;
+  --color-admin-text-3: #a78573;
+  --color-admin-text-4: #8e7061;
+  --color-danger-bg: rgba(183, 29, 41, 0.24);
+  --color-danger-text: #ff9a9a;
+
+  --font-grifter: var(--font-grifter-local), var(--font-archivo), sans-serif;
+  --font-archivo: var(--font-archivo-local), system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-archivo);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--color-deep);
+}
+a:hover {
+  color: var(--color-orange);
+}
+
+input:focus,
+select:focus {
+  outline: 2px solid var(--color-orange);
+  outline-offset: 1px;
+}
+
+::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-mid-2);
+  border-radius: 8px;
+}
+
+/*
+ * Boucles décoratives continues : laissées en CSS pur (pas de JS nécessaire,
+ * exactement le comportement du prototype). GSAP est réservé aux séquences
+ * pilotées — reveal au scroll (ScrollTrigger), roue de la chance,
+ * choreographie d'entrée du hero — voir components/site/*.
+ */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes float1 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0, -26px, 0) rotate(6deg);
+  }
+}
+@keyframes float2 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, 22px, 0) scale(1.06);
+  }
+}
+@keyframes shine {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 200% 50%;
+  }
+}
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(251, 97, 23, 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 26px rgba(251, 97, 23, 0);
+  }
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-marquee {
+  animation: marquee 26s linear infinite;
+}
+.animate-float-1 {
+  animation: float1 11s ease-in-out infinite;
+}
+.animate-float-2 {
+  animation: float2 13s ease-in-out infinite;
+}
+.animate-shine {
+  animation: shine 5s linear infinite;
+}
+.animate-pulse-ring {
+  animation: pulse-ring 2.2s infinite;
+}
+.animate-toast-in {
+  animation: toast-in 0.3s both;
+}
+
+/*
+ * Placeholder photo de plat (README § Espacement, rayons, ombres) : motif
+ * rayé tant qu'un MenuItem/Order n'a pas d'imageUrl Cloudinary.
+ */
+.placeholder-photo {
+  background: repeating-linear-gradient(44deg, #f6e3d6 0 12px, #efd6c6 12px 24px);
+}
