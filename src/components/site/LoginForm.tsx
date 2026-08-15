@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/lib/auth-client";
+import { PasswordInput } from "@/components/site/PasswordInput";
 
 export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
   const router = useRouter();
@@ -55,11 +56,10 @@ export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
       </label>
       <label className="grid gap-1.75 text-xs font-extrabold tracking-[.1em] text-label">
         MOT DE PASSE
-        <input
-          type="password"
+        <PasswordInput
           required
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={setPassword}
           className="border-[1.5px] border-border-mid rounded-[13px] px-3.5 py-3.25 text-[15px] text-ink bg-[#FFFBF7]"
         />
       </label>
