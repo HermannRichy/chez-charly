@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/pricing";
-import { AdminZoneRow } from "@/components/admin/AdminZoneRow";
-import { AdminFreeFrom } from "@/components/admin/AdminFreeFrom";
+import { PageHeader } from "@/components/admin/ui/page-header";
+import { TableCard } from "@/components/admin/ui/table-card";
+import { ZonesTable, AddZoneButton } from "@/components/admin/livraison/ZonesTable";
+import { FreeFromCard } from "@/components/admin/livraison/FreeFromCard";
 
 export default async function AdminLivraisonPage() {
   const [zones, settings] = await Promise.all([
@@ -10,13 +12,18 @@ export default async function AdminLivraisonPage() {
   ]);
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-4 items-start">
-      <div className="grid gap-2">
-        {zones.map((z) => (
-          <AdminZoneRow key={z.id} zone={z} />
-        ))}
+    <div className="grid gap-5 min-w-0">
+      <PageHeader
+        title="Livraison"
+        description="Zones, tarifs, retrait au resto et livraison offerte"
+        actions={<AddZoneButton />}
+      />
+      <div className="grid lg:grid-cols-[1fr_280px] gap-5 items-start">
+        <TableCard>
+          <ZonesTable zones={zones} />
+        </TableCard>
+        <FreeFromCard value={settings.freeFrom} />
       </div>
-      <AdminFreeFrom value={settings.freeFrom} />
     </div>
   );
 }

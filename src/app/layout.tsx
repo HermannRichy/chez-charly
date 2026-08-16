@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Archivo } from "next/font/google";
 import { Toaster } from "sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 // Police des titres/prix/chiffres fournie par le client (README : vérifier la
@@ -44,7 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${grifter.variable} ${archivo.variable}`}
     >
       <body>
-        {children}
+        <TooltipProvider>{children}</TooltipProvider>
         <Toaster
           position="bottom-center"
           toastOptions={{

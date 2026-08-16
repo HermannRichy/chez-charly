@@ -11,34 +11,21 @@ type NavItem = { href: string; label: string; icon?: ComponentType<{ size?: numb
 /**
  * Menu mobile en bottom-sheet (même mécanique que MenuCategoryFilter :
  * portail vers document.body, plein écran depuis le bas) plutôt qu'une
- * rangée qui défile horizontalement — réutilisé par le compte client et le
- * dashboard admin plutôt que dupliqué deux fois.
+ * rangée qui défile horizontalement. Utilisé par le compte client
+ * (AccountSidebar) — le dashboard admin a sa propre sidebar shadcn, qui gère
+ * son mode mobile nativement (Sheet intégré).
  */
-export function NavSheet({
-  items,
-  theme = "site",
-  triggerLabel,
-}: {
-  items: NavItem[];
-  theme?: "site" | "admin";
-  triggerLabel?: string;
-}) {
+export function NavSheet({ items, triggerLabel }: { items: NavItem[]; triggerLabel?: string }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const active = items.find((i) => i.href === pathname);
-
-  const isAdmin = theme === "admin";
 
   return (
     <div className="md:hidden">
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={
-          isAdmin
-            ? "w-full flex items-center justify-between gap-2.5 border border-admin-text/18 bg-admin-surface text-admin-text px-4.5 py-3 rounded-full text-sm font-bold"
-            : "w-full flex items-center justify-between gap-2.5 border-[1.5px] border-border-mid-2 bg-white text-[#7A3A2A] px-4.5 py-3 rounded-full text-sm font-bold"
-        }
+        className="w-full flex items-center justify-between gap-2.5 border-[1.5px] border-border-mid-2 bg-white text-[#7A3A2A] px-4.5 py-3 rounded-full text-sm font-bold"
       >
         <span className="flex items-center gap-2">
           {active?.icon && <active.icon size={17} />}
@@ -57,33 +44,15 @@ export function NavSheet({
               onClick={() => setOpen(false)}
               className="absolute inset-0 bg-ink/45"
             />
-            <div
-              className={
-                isAdmin
-                  ? "absolute inset-x-0 bottom-0 max-h-[75vh] overflow-y-auto bg-admin-bg rounded-t-[26px] px-5 pt-3 pb-8"
-                  : "absolute inset-x-0 bottom-0 max-h-[75vh] overflow-y-auto bg-cream rounded-t-[26px] px-5 pt-3 pb-8"
-              }
-            >
-              <div
-                className={
-                  isAdmin
-                    ? "w-10 h-1.25 rounded-full bg-admin-text/20 mx-auto mb-4"
-                    : "w-10 h-1.25 rounded-full bg-border-mid-2 mx-auto mb-4"
-                }
-              />
+            <div className="absolute inset-x-0 bottom-0 max-h-[75vh] overflow-y-auto bg-cream rounded-t-[26px] px-5 pt-3 pb-8">
+              <div className="w-10 h-1.25 rounded-full bg-border-mid-2 mx-auto mb-4" />
               <div className="flex items-center justify-between mb-3.5">
-                <div className={isAdmin ? "font-grifter text-xl text-orange" : "font-grifter text-xl text-deep"}>
-                  Navigation
-                </div>
+                <div className="font-grifter text-xl text-deep">Navigation</div>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
                   aria-label="Fermer"
-                  className={
-                    isAdmin
-                      ? "w-9 h-9 grid place-items-center rounded-full border border-admin-text/20 text-admin-text"
-                      : "w-9 h-9 grid place-items-center rounded-full border border-border-mid-3 text-[#5A2A1E]"
-                  }
+                  className="w-9 h-9 grid place-items-center rounded-full border border-border-mid-3 text-[#5A2A1E]"
                 >
                   <IconX size={18} />
                 </button>
@@ -100,9 +69,7 @@ export function NavSheet({
                       className={
                         isActive
                           ? "min-h-13 flex items-center gap-3 px-4 rounded-2xl bg-orange text-white text-[15px] font-extrabold"
-                          : isAdmin
-                            ? "min-h-13 flex items-center gap-3 px-4 rounded-2xl bg-admin-surface text-admin-text-2 text-[15px] font-bold"
-                            : "min-h-13 flex items-center gap-3 px-4 rounded-2xl bg-white border border-border-light text-ink text-[15px] font-bold"
+                          : "min-h-13 flex items-center gap-3 px-4 rounded-2xl bg-white border border-border-light text-ink text-[15px] font-bold"
                       }
                     >
                       {it.icon && <it.icon size={18} />}

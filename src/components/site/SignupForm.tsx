@@ -69,6 +69,9 @@ export function SignupForm({ callbackUrl }: { callbackUrl: string }) {
           placeholder="01 XX XX XX XX"
           className="border-[1.5px] border-border-mid rounded-[13px] px-3.5 py-3.25 text-[15px] text-ink bg-[#FFFBF7]"
         />
+        <span className="text-[11.5px] font-semibold text-text-tertiary normal-case tracking-normal">
+          De préférence un numéro WhatsApp - le resto vous y contactera pour le suivi de vos commandes.
+        </span>
       </label>
       <label className="grid gap-1.75 text-xs font-extrabold tracking-[.1em] text-label">
         EMAIL

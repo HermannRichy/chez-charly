@@ -20,6 +20,20 @@ export async function updatePtsPerUnitAction(ptsPerUnit: number) {
   revalidate();
 }
 
+export async function createTierAction(data: { name: string; threshold: number; reward: string }) {
+  await requireStaff();
+  const last = await prisma.loyaltyTier.aggregate({ _max: { sortOrder: true } });
+  await prisma.loyaltyTier.create({
+    data: {
+      name: data.name,
+      threshold: Math.round(data.threshold) || 0,
+      reward: data.reward,
+      sortOrder: (last._max.sortOrder ?? -1) + 1,
+    },
+  });
+  revalidate();
+}
+
 export async function updateTierAction(id: string, data: { name?: string; threshold?: number; reward?: string }) {
   await requireStaff();
   await prisma.loyaltyTier.update({

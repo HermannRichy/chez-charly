@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { IconLogout } from "@tabler/icons-react";
 import { signOut } from "@/lib/auth-client";
 
 export function LogoutButton({ className }: { className?: string }) {
@@ -29,7 +30,10 @@ export function LogoutButton({ className }: { className?: string }) {
           "w-full border-[1.5px] border-deep bg-transparent text-deep px-5 py-3.25 rounded-full text-sm font-extrabold hover:bg-deep hover:text-white"
         }
       >
-        Se déconnecter
+        <span className="inline-flex items-center justify-center gap-2 w-full">
+          <IconLogout size={16} />
+          Se déconnecter
+        </span>
       </button>
 
       {confirming &&

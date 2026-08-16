@@ -22,20 +22,56 @@
   --color-text-tertiary-3: #96604e;
   --color-label: #a07862; /* Labels de champs */
   --color-label-2: #b0806d;
-  --color-success-bg: #6fe39b; /* Badge "atteint", paiement vérifié */
-  --color-success-dot: #21a85b;
-  --color-amber: #ffc978; /* Bouton "valider le paiement" */
-  --color-admin-bg: #16100e;
-  --color-admin-surface: #211714;
-  --color-admin-text: #f3e4da;
-  --color-admin-text-2: #d5bdb0;
-  --color-admin-text-3: #a78573;
-  --color-admin-text-4: #8e7061;
-  --color-danger-bg: rgba(183, 29, 41, 0.24);
-  --color-danger-text: #ff9a9a;
+  --color-amber: #ffc978; /* Bouton "valider le paiement" (aussi utilisé côté admin) */
 
   --font-grifter: var(--font-grifter-local), var(--font-archivo), sans-serif;
   --font-archivo: var(--font-archivo-local), system-ui, sans-serif;
+
+  /*
+   * Tokens shadcn/ui — utilisés uniquement par les composants générés
+   * (src/components/ui/*, dashboard admin). `shadcn add` ne les a pas
+   * injectés automatiquement puisque le projet n'a jamais tourné `shadcn
+   * init` (le components.json a été copié depuis nextpress). Palette fixe et
+   * sombre calée sur les tokens admin-* déjà en place (pas de bascule
+   * clair/sombre : l'admin est le seul consommateur, et il est sombre by design).
+   */
+  --color-background: #16100e;
+  --color-foreground: #f3e4da;
+  --color-card: #211714;
+  --color-card-foreground: #f3e4da;
+  --color-popover: #211714;
+  --color-popover-foreground: #f3e4da;
+  --color-primary: #fb6117;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #2a1e19;
+  --color-secondary-foreground: #f3e4da;
+  --color-muted: #2a1e19;
+  --color-muted-foreground: #a78573;
+  --color-accent: #2a1e19;
+  --color-accent-foreground: #f3e4da;
+  --color-destructive: #b71d29;
+  --color-destructive-foreground: #ffffff;
+  --color-border: rgba(243, 228, 218, 0.12);
+  --color-input: rgba(243, 228, 218, 0.16);
+  --color-ring: #fb6117;
+  --color-chart-1: #fb6117;
+  --color-chart-2: #8cc63f;
+  --color-chart-3: #1b6fd6;
+  --color-chart-4: #ffc978;
+  --color-chart-5: #b71d29;
+  --color-sidebar: #211714;
+  --color-sidebar-foreground: #f3e4da;
+  --color-sidebar-primary: #fb6117;
+  --color-sidebar-primary-foreground: #ffffff;
+  --color-sidebar-accent: rgba(243, 228, 218, 0.08);
+  --color-sidebar-accent-foreground: #f3e4da;
+  --color-sidebar-border: rgba(243, 228, 218, 0.1);
+  --color-sidebar-ring: #fb6117;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
 }
 
 html {
@@ -49,10 +85,19 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-a {
+/*
+ * Scopé au site public (.site-scope, posé par (site)/layout.tsx et
+ * (auth)/layout.tsx) plutôt qu'un sélecteur `a` global : sinon cette couleur
+ * de lien "marque" (rouge --color-deep) s'appliquait aussi aux liens du
+ * dashboard admin (shadcn Sidebar) et écrasait leurs propres classes, faute
+ * de règle plus spécifique posée directement sur le <a> par les composants
+ * shadcn (le texte hérite normalement de l'ancêtre, mais une règle qui
+ * cible l'élément directement gagne toujours sur l'héritage).
+ */
+.site-scope a {
   color: var(--color-deep);
 }
-a:hover {
+.site-scope a:hover {
   color: var(--color-orange);
 }
 

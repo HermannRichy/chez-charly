@@ -6,7 +6,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   const cartCount = await getCartCount();
 
   return (
-    <div className="min-h-screen overflow-x-clip relative">
+    <div className="site-scope min-h-screen overflow-x-clip relative">
       <Header cartCount={cartCount} />
       {children}
       <Footer />

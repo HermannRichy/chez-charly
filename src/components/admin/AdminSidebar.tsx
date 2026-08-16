@@ -3,72 +3,118 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { IconReceipt2, IconToolsKitchen2, IconTruckDelivery, IconGift, IconArrowLeft } from "@tabler/icons-react";
-import { NavSheet } from "@/components/site/NavSheet";
+import {
+  IconLayoutDashboard,
+  IconReceipt2,
+  IconToolsKitchen2,
+  IconTruckDelivery,
+  IconGift,
+  IconArrowLeft,
+} from "@tabler/icons-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+} from "@/components/ui/sidebar";
+import { Avatar } from "@/components/site/Avatar";
+import { LogoutButton } from "@/components/site/LogoutButton";
 
-const LINKS = [
-  { href: "/admin", label: "Commandes", icon: IconReceipt2 },
+const NAV = [
+  { href: "/admin", label: "Tableau de bord", icon: IconLayoutDashboard },
+  { href: "/admin/commandes", label: "Commandes", icon: IconReceipt2 },
   { href: "/admin/menu", label: "Menu", icon: IconToolsKitchen2 },
   { href: "/admin/livraison", label: "Livraison", icon: IconTruckDelivery },
   { href: "/admin/fidelite", label: "Fidélité", icon: IconGift },
 ];
 
-export function AdminSidebar() {
+// SidebarMenuButton pose `data-active={isActive}`, et React ne retire jamais
+// un attribut data-* booléen : l'attribut vaut littéralement "true" OU
+// "false", mais existe toujours dans le DOM. Or la classe interne du
+// composant (`data-active:bg-sidebar-accent`, dans src/components/ui/sidebar.tsx)
+// matche par simple présence de l'attribut — elle s'appliquait donc à TOUS
+// les items, actifs ou non. `data-[active=false]:!bg-transparent` neutralise
+// ce fond par défaut du vendor ; `data-[active=true]:!bg-primary` pose le
+// fond orange marque uniquement sur l'item réellement actif.
+const ACTIVE_CLASSES =
+  "data-[active=false]:bg-transparent! data-[active=true]:bg-primary! data-[active=true]:text-primary-foreground! data-[active=true]:hover:bg-primary/90!";
+
+export function AdminSidebar({ user }: { user: { name: string; email: string } }) {
   const pathname = usePathname();
 
   return (
-    <>
-      {/* Mobile : menu en bottom-sheet, pas de rangée qui défile ou se replie. */}
-      <div className="md:hidden">
-        <NavSheet items={LINKS} theme="admin" />
-      </div>
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <Link href="/admin" className="flex items-center gap-2.5 px-2 py-1.5">
+          <Image
+            src="/logo-charly.png"
+            alt="Chez Charly"
+            height={32}
+            width={32}
+            className="h-8 w-auto shrink-0 brightness-0 invert opacity-90"
+          />
+          <div className="group-data-[collapsible=icon]:hidden">
+            <div className="text-[13px] font-extrabold leading-tight">Chez Charly</div>
+            <div className="text-[10px] font-bold text-sidebar-foreground/60 tracking-[.1em]">DASHBOARD</div>
+          </div>
+        </Link>
+      </SidebarHeader>
 
-      {/* Desktop : sidebar fixe, sticky. */}
-      <aside className="hidden md:block w-60 shrink-0">
-        <div className="sticky top-8 grid gap-6">
-          <Link href="/" className="flex items-center gap-2.5">
-            <Image
-              src="/logo-charly.png"
-              alt="Chez Charly"
-              height={40}
-              width={40}
-              className="h-10 w-auto brightness-0 invert opacity-90"
-            />
-            <div>
-              <div className="text-[13px] font-extrabold text-admin-text leading-tight">Chez Charly</div>
-              <div className="text-[10.5px] font-bold text-admin-text-4 tracking-[.1em]">DASHBOARD</div>
-            </div>
-          </Link>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {NAV.map((item) => {
+                const active = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton asChild isActive={active} tooltip={item.label} className={ACTIVE_CLASSES}>
+                      <Link href={item.href}>
+                        <item.icon size={16} />
+                        <span>{item.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
 
-          <nav className="grid gap-1">
-            {LINKS.map((l) => {
-              const active = pathname === l.href;
-              return (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  className={
-                    active
-                      ? "flex items-center gap-3 px-4 py-3 rounded-2xl bg-orange text-white text-sm font-extrabold"
-                      : "flex items-center gap-3 px-4 py-3 rounded-2xl text-admin-text-2 text-sm font-bold hover:bg-admin-surface"
-                  }
-                >
-                  <l.icon size={18} />
-                  {l.label}
-                </Link>
-              );
-            })}
-          </nav>
-
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 px-4 py-3 rounded-2xl text-admin-text-3 text-[13px] font-bold hover:bg-admin-surface hover:text-admin-text"
-          >
-            <IconArrowLeft size={16} />
-            Voir le site client
-          </Link>
+      <SidebarFooter className="gap-3">
+        <div className="flex items-center gap-2.5 px-2 py-1.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+          <Avatar name={user.name} size="sm" />
+          <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+            <div className="text-[13px] font-bold text-sidebar-foreground truncate">{user.name}</div>
+            <div className="text-[11px] text-sidebar-foreground/60 truncate">{user.email}</div>
+          </div>
         </div>
-      </aside>
-    </>
+
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Voir le site client" className="data-[active=false]:bg-transparent!">
+              <Link href="/">
+                <IconArrowLeft size={16} />
+                <span>Voir le site client</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+
+        <div className="px-2 group-data-[collapsible=icon]:hidden">
+          <LogoutButton className="w-full h-8 rounded-md border border-sidebar-border bg-transparent text-sidebar-foreground/80 text-xs font-bold hover:bg-sidebar-accent" />
+        </div>
+      </SidebarFooter>
+      <SidebarRail />
+    </Sidebar>
   );
 }

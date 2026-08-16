@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import * as z from "zod";
 import { requireStaff } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
@@ -10,31 +12,34 @@ function revalidate() {
   revalidatePath("/");
 }
 
-export async function addMenuItemAction(input: { name: string; price: number; category: string }) {
-  await requireStaff();
-  if (!input.name.trim() || !input.price) throw new Error("Nom et prix requis");
+const menuItemSchema = z.object({
+  name: z.string().trim().min(2, { message: "Nom trop court" }),
+  price: z.coerce.number().int().positive({ message: "Prix invalide" }),
+  category: z.string().trim().min(2, { message: "Catégorie requise" }),
+  note: z.string().trim().max(200, { message: "Note trop longue" }).optional(),
+  active: z.boolean(),
+  featured: z.boolean(),
+});
 
-  await prisma.menuItem.create({
-    data: { name: input.name.trim(), price: Math.round(input.price), category: input.category },
-  });
-  revalidate();
+export type MenuItemFormInput = z.infer<typeof menuItemSchema>;
+
+export async function getMenuItem(id: string) {
+  await requireStaff();
+  return prisma.menuItem.findUnique({ where: { id } });
 }
 
-export async function updateMenuItemNameAction(id: string, name: string) {
+export async function createMenuItemAction(input: MenuItemFormInput) {
   await requireStaff();
-  await prisma.menuItem.update({ where: { id }, data: { name } });
+  const data = menuItemSchema.parse(input);
+  const created = await prisma.menuItem.create({ data: { ...data, note: data.note ?? "" } });
   revalidate();
+  redirect(`/admin/menu/${created.id}`);
 }
 
-export async function updateMenuItemPriceAction(id: string, price: number) {
+export async function updateMenuItemAction(id: string, input: MenuItemFormInput) {
   await requireStaff();
-  await prisma.menuItem.update({ where: { id }, data: { price: Math.round(price) || 0 } });
-  revalidate();
-}
-
-export async function updateMenuItemNoteAction(id: string, note: string) {
-  await requireStaff();
-  await prisma.menuItem.update({ where: { id }, data: { note } });
+  const data = menuItemSchema.parse(input);
+  await prisma.menuItem.update({ where: { id }, data: { ...data, note: data.note ?? "" } });
   revalidate();
 }
 
@@ -85,4 +90,5 @@ export async function deleteMenuItemAction(id: string) {
   await requireStaff();
   await prisma.menuItem.delete({ where: { id } });
   revalidate();
+  redirect("/admin/menu");
 }
