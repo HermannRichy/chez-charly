@@ -22,10 +22,18 @@ const archivo = Archivo({
   display: "swap",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+const title = "Chez Charly - Toujours bien chargé";
+const description =
+  "Attiéké poisson, riz aileron, alloco brûlant. Commandez en ligne, payez par MoMo, on livre à Calavi.";
+
 export const metadata: Metadata = {
-  title: "Chez Charly - Toujours bien chargé",
-  description:
-    "Attiéké poisson, riz aileron, alloco brûlant. Commandez en ligne, payez par MoMo, on livre à Calavi.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: title,
+    template: "%s · Chez Charly",
+  },
+  description,
   icons: {
     icon: [
       { url: "/favicon.ico" },
@@ -35,6 +43,26 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",
+  openGraph: {
+    title,
+    description,
+    url: "/",
+    siteName: "Chez Charly",
+    locale: "fr_FR",
+    type: "website",
+    images: [
+      {
+        url: "/photos/commande-emballee.jpg",
+        alt: "Commandes Chez Charly emballées, prêtes à partir",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+    images: ["/photos/commande-emballee.jpg"],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
