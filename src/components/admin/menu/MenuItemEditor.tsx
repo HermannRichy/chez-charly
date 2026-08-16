@@ -39,6 +39,7 @@ const schema = z.object({
   note: z.string().trim().max(200, "200 caractères max").optional(),
 });
 
+type FormInput = z.input<typeof schema>;
 type FormValues = z.infer<typeof schema>;
 
 export type EditableMenuItem = {
@@ -73,7 +74,7 @@ export function MenuItemEditor({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormValues>({
+  } = useForm<FormInput, any, FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: item?.name ?? "",

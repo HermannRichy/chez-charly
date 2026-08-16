@@ -75,6 +75,19 @@ export function Header({ cartCount }: { cartCount: number }) {
                         })}
                     </nav>
 
+                    {user ? (
+                        <Link href="/compte" className="hidden md:block shrink-0">
+                            <Avatar name={user.name} size="sm" />
+                        </Link>
+                    ) : (
+                        <Link
+                            href="/login"
+                            className="hidden md:inline-flex items-center border-[1.5px] border-ink text-ink px-4 py-2 rounded-full text-[13.5px] font-extrabold hover:bg-ink hover:text-cream shrink-0"
+                        >
+                            Se connecter
+                        </Link>
+                    )}
+
                     <Link
                         href="/panier"
                         className="ml-auto md:ml-0 border-0 bg-ink text-cream px-4.5 py-2.5 rounded-full text-[13.5px] font-extrabold flex items-center gap-2.5 hover:bg-deep shrink-0"
