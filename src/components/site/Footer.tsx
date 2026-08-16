@@ -51,8 +51,16 @@ export function Footer() {
           </div>
         </div>
       </div>
-      <div className="max-w-310 mx-auto mt-8.5 pt-5 border-t border-[#C6A292]/20 text-[12.5px] text-[#8E7061] flex flex-wrap items-center justify-between gap-2">
-        <span>© 2026 Chez Charly. Tous droits réservés.</span>
+      <div className="max-w-310 mx-auto mt-8.5 pt-5 border-t border-[#C6A292]/20 text-[12.5px] text-[#8E7061] flex flex-wrap items-center justify-between gap-x-5 gap-y-2">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5">
+          <span>© 2026 Chez Charly. Tous droits réservés.</span>
+          <Link href="/mentions-legales" className="hover:text-orange">
+            Mentions légales
+          </Link>
+          <Link href="/conditions-utilisation" className="hover:text-orange">
+            Conditions d&apos;utilisation
+          </Link>
+        </div>
         <span>
           Développé par{" "}
           <a

@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { Archivo } from "next/font/google";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { CookieBanner } from "@/components/site/CookieBanner";
 import "./globals.css";
 
 // Police des titres/prix/chiffres fournie par le client (README : vérifier la
@@ -74,6 +75,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body>
         <TooltipProvider>{children}</TooltipProvider>
+        <CookieBanner />
         <Toaster
           position="bottom-center"
           toastOptions={{
