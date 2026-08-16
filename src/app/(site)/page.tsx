@@ -8,16 +8,81 @@ import { PlaceholderPhoto } from "@/components/site/PlaceholderPhoto";
 import { ImageSwiper } from "@/components/site/ImageSwiper";
 import { Reveal } from "@/components/site/Reveal";
 import { AddToCartButton } from "@/components/site/AddToCartButton";
+import { ColorBar, CornerArc, WaveDivider, SwashAccent } from "@/components/site/ColorAccent";
+
+/** Réduit un intervalle de délai type "10–20 min" à sa borne haute ("20 min") pour tenir dans le chiffre-clé du hero. */
+function shortEta(label: string): string {
+    const nums = label.match(/\d+/g);
+    if (!nums || nums.length === 0) return label;
+    return `${nums[nums.length - 1]} min`;
+}
+
+const OPEN_HOUR = 10;
+const CLOSE_HOUR = 23;
+
+const DISH_ACCENT_COLORS = ["#FB6117", "#1B6FD6", "#8CC63F", "#B71D29"];
+const STEP_ACCENT_COLORS = ["#FB6117", "#8CC63F", "#1B6FD6"];
+
+/** Ouvert/fermé calculé sur l'heure réelle du Bénin (UTC+1, pas d'heure d'été), pas sur l'heure du serveur. */
+function getOpenStatus(): { open: boolean; label: string } {
+    const parts = new Intl.DateTimeFormat("fr-FR", {
+        timeZone: "Africa/Porto-Novo",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+    }).formatToParts(new Date());
+    const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+    const minute = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+
+    const minutesNow = hour * 60 + minute;
+    const openAt = OPEN_HOUR * 60;
+    const closeAt = CLOSE_HOUR * 60;
+
+    if (minutesNow >= openAt && minutesNow < closeAt) {
+        return { open: true, label: "Ouvert" };
+    }
+
+    const minutesUntilOpen =
+        minutesNow < openAt ? openAt - minutesNow : 24 * 60 - minutesNow + openAt;
+    const h = Math.floor(minutesUntilOpen / 60);
+    const m = minutesUntilOpen % 60;
+    const remaining = h > 0 ? `${h}h${m.toString().padStart(2, "0")}` : `${m} min`;
+    return { open: false, label: `Ouvre dans ${remaining}` };
+}
+
+/** Vedettes réelles cochées par l'admin ; si moins de 4, complète avec les plats actifs les plus récents pour ne jamais afficher une section vide. */
+async function getFeaturedDishes() {
+    const featured = await prisma.menuItem.findMany({
+        where: { featured: true, active: true },
+        orderBy: { updatedAt: "desc" },
+        take: 4,
+    });
+    if (featured.length >= 4) return featured;
+
+    const fallback = await prisma.menuItem.findMany({
+        where: { active: true, id: { notIn: featured.map((f) => f.id) } },
+        orderBy: { createdAt: "desc" },
+        take: 4 - featured.length,
+    });
+    return [...featured, ...fallback];
+}
 
 export default async function AccueilPage() {
-    const [featured, tiers, settings] = await Promise.all([
-        prisma.menuItem.findMany({
-            where: { featured: true, active: true },
-            take: 4,
-        }),
-        prisma.loyaltyTier.findMany({ orderBy: { sortOrder: "asc" } }),
-        getSettings(),
-    ]);
+    const [featured, tiers, settings, cheapestDish, womeyZone, memberCount, pickupZone] =
+        await Promise.all([
+            getFeaturedDishes(),
+            prisma.loyaltyTier.findMany({ orderBy: { sortOrder: "asc" } }),
+            getSettings(),
+            prisma.menuItem.aggregate({
+                _min: { price: true },
+                where: { active: true },
+            }),
+            prisma.deliveryZone.findFirst({ where: { name: "Womey" } }),
+            prisma.user.count({ where: { role: "CLIENT" } }),
+            prisma.deliveryZone.findFirst({ where: { isPickup: true } }),
+        ]);
+
+    const openStatus = getOpenStatus();
 
     return (
         <div>
@@ -29,8 +94,14 @@ export default async function AccueilPage() {
                 <div className="max-w-310 mx-auto grid grid-cols-[repeat(auto-fit,minmax(min(100%,330px),1fr))] gap-[clamp(30px,5vw,54px)] items-center relative">
                     <div>
                         <div className="inline-flex items-center gap-2.25 pl-2.25 pr-3.75 py-1.75 rounded-full bg-white border border-[#F2D3C0] text-xs font-bold text-[#8A4230]">
-                            <span className="animate-pulse-ring w-2.25 h-2.25 rounded-full bg-[#21A85B]" />
-                            Ouvert · Abomey-Calavi, Womey
+                            <span
+                                className={
+                                    openStatus.open
+                                        ? "animate-pulse-ring w-2.25 h-2.25 rounded-full bg-[#21A85B]"
+                                        : "w-2.25 h-2.25 rounded-full bg-[#C97B4A]"
+                                }
+                            />
+                            {openStatus.label} · Abomey-Calavi, Womey
                         </div>
 
                         <h1 className="font-grifter text-[clamp(46px,12vw,116px)] leading-[.86] tracking-[-.02em] mt-5.5 text-deep text-balance">
@@ -42,7 +113,7 @@ export default async function AccueilPage() {
                             </span>
                         </h1>
 
-                        <p className="max-w-[480px] text-sm leading-[1.55] text-[#6A392C] mt-6 text-pretty">
+                        <p className="max-w-[480px] text-sm lg:text-lg leading-[1.55] text-[#6A392C] mt-6 text-pretty">
                             Attiéké poisson, riz aileron, alloco brûlant.
                             Commandez en ligne, payez par MoMo, on livre à
                             Calavi et chaque commande vous rapporte des points.
@@ -51,51 +122,52 @@ export default async function AccueilPage() {
                         <div className="flex gap-3 mt-8.5 flex-wrap">
                             <Link
                                 href="/menu"
-                                className="border-0 bg-orange text-white px-7.5 py-4.25 rounded-full text-base font-extrabold shadow-[0_14px_34px_rgba(251,97,23,.36)] transition hover:-translate-y-0.75 hover:shadow-[0_20px_44px_rgba(251,97,23,.46)]"
+                                className="border-0 bg-orange text-white px-7.5 py-4.25 rounded-full text-xs lg:text-base font-extrabold shadow-[0_14px_34px_rgba(251,97,23,.36)] transition hover:-translate-y-0.75 hover:shadow-[0_20px_44px_rgba(251,97,23,.46)]"
                             >
                                 Commander maintenant
                             </Link>
                             <Link
                                 href="/fidelite"
-                                className="border-[1.5px] border-ink bg-transparent text-ink px-7 py-4.25 rounded-full text-base font-extrabold transition hover:bg-ink hover:text-cream"
+                                className="border-[1.5px] border-ink bg-transparent text-ink px-7 py-4.25 rounded-full text-xs lg:text-base font-extrabold transition hover:bg-ink hover:text-cream"
                             >
                                 Mes points fidélité
                             </Link>
                         </div>
 
-                        <div className="flex flex-wrap gap-x-7.5 gap-y-5.5 mt-10">
+                        <div className="grid grid-cols-3 gap-x-3.5 sm:gap-x-7.5 gap-y-5.5 mt-10">
                             <div>
-                                <div className="font-grifter text-[32px] text-deep">
-                                    {fmt(500)}
+                                <div className="font-grifter text-[clamp(20px,6vw,32px)] text-deep">
+                                    {fmt(cheapestDish._min.price ?? 0)}
                                 </div>
-                                <div className="text-[12.5px] text-[#8A6154] font-semibold">
+                                <div className="text-[11px] sm:text-[12.5px] text-[#8A6154] font-semibold">
                                     Le plat le plus doux
                                 </div>
                             </div>
-                            <div className="w-px bg-[#EBD0BF]" />
-                            <div>
-                                <div className="font-grifter text-[32px] text-deep">
-                                    20 min
+                            <div className="border-l border-[#EBD0BF] pl-3.5 sm:pl-7.5">
+                                <div className="font-grifter text-[clamp(20px,6vw,32px)] text-deep">
+                                    {womeyZone
+                                        ? shortEta(womeyZone.etaLabel)
+                                        : "-"}
                                 </div>
-                                <div className="text-[12.5px] text-[#8A6154] font-semibold">
+                                <div className="text-[11px] sm:text-[12.5px] text-[#8A6154] font-semibold">
                                     Livraison Womey
                                 </div>
                             </div>
-                            <div className="w-px bg-[#EBD0BF]" />
-                            <div>
-                                <div className="font-grifter text-[32px] text-deep">
-                                    312
+                            <div className="border-l border-[#EBD0BF] pl-3.5 sm:pl-7.5">
+                                <div className="font-grifter text-[clamp(20px,6vw,32px)] text-deep">
+                                    {fmtNumber(memberCount)}
                                 </div>
-                                <div className="text-[12.5px] text-[#8A6154] font-semibold">
+                                <div className="text-[11px] sm:text-[12.5px] text-[#8A6154] font-semibold">
                                     Membres fidélité
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="relative">
+                    <div className="relative aspect-square">
                         <div className="absolute inset-[8%_6%] rounded-full bg-orange opacity-22 blur-[30px]" />
-                        <div className="animate-float-1 relative aspect-square rounded-full overflow-hidden border-[14px] border-deep placeholder-photo grid place-items-center shadow-[0_40px_80px_rgba(122,45,25,.24)]">
+
+                        <div className="animate-float-1 absolute top-[6%] left-[20%] w-[58%] aspect-[4/5] rounded-[28px] overflow-hidden border-[10px] border-deep placeholder-photo shadow-[0_40px_80px_rgba(122,45,25,.24)] z-20">
                             <Image
                                 src="/photos/attieke.jpg"
                                 alt="Attiéké, alloco et poulet mayo"
@@ -104,13 +176,41 @@ export default async function AccueilPage() {
                                 priority
                             />
                         </div>
-                        <div className="animate-float-2 absolute bottom-[6%] -left-[6%] bg-white rounded-[20px] px-4.5 py-3.5 shadow-[0_22px_48px_rgba(122,45,25,.2)]">
-                            <div className="text-[11px] font-extrabold text-[#8A6154] tracking-[.08em]">
-                                POINTS GAGNÉS
-                            </div>
-                            <div className="font-grifter text-[28px] text-orange">
-                                +50 pts
-                            </div>
+
+                        <div className="animate-float-2 [animation-delay:-2s] absolute top-0 left-0 w-[32%] aspect-square rounded-[20px] overflow-hidden border-[5px] border-cream shadow-[0_18px_38px_rgba(122,45,25,.3)] z-30 -rotate-6">
+                            <Image
+                                src="/photos/commande-emballee.jpg"
+                                alt="Commande emballée, prête à partir"
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
+
+                        <div className="animate-float-1 [animation-delay:-6s] absolute bottom-[2%] -left-[4%] w-[34%] aspect-[4/5] rounded-[20px] overflow-hidden border-[5px] border-cream shadow-[0_18px_38px_rgba(122,45,25,.3)] z-40 rotate-5">
+                            <Image
+                                src="/photos/charly.jpg"
+                                alt="Charly aux fourneaux"
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
+
+                        <div className="animate-float-2 [animation-delay:-9s] absolute top-[2%] -right-[6%] w-[30%] aspect-square rounded-[20px] overflow-hidden border-[5px] border-cream shadow-[0_18px_38px_rgba(122,45,25,.3)] z-30 rotate-4">
+                            <Image
+                                src="/photos/bouffe.jpg"
+                                alt="Plat Chez Charly"
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
+
+                        <div className="animate-float-1 [animation-delay:-3s] absolute bottom-0 right-[4%] w-[28%] aspect-[4/5] rounded-[20px] overflow-hidden border-[5px] border-cream shadow-[0_18px_38px_rgba(122,45,25,.3)] z-40 -rotate-5">
+                            <Image
+                                src="/photos/igname.jpg"
+                                alt="Igname pilée Chez Charly"
+                                fill
+                                className="object-cover"
+                            />
                         </div>
                     </div>
                 </div>
@@ -118,48 +218,10 @@ export default async function AccueilPage() {
 
             <Marquee />
 
-            {/* ─── Bandeau événement ────────────────────────────────────────────── */}
-            <section className="max-w-310 mx-auto px-4.5 pt-[clamp(46px,7vw,74px)]">
-                <Reveal className="rounded-[28px] overflow-hidden bg-ink text-cream grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] items-stretch">
-                    <div className="p-[clamp(24px,3.6vw,40px)] grid content-center gap-3.5">
-                        <div className="flex gap-1.5 items-center">
-                            <span className="w-7.5 h-2 rounded-sm bg-orange" />
-                            <span className="w-4 h-2 rounded-sm bg-[#8CC63F]" />
-                            <span className="w-5.5 h-2 rounded-sm bg-[#1B6FD6]" />
-                            <span className="text-[11.5px] font-extrabold tracking-[.14em] text-orange ml-1.5">
-                                30 AOÛT · HÊVIÉ
-                            </span>
-                        </div>
-                        <div className="font-grifter text-[clamp(28px,3.4vw,44px)] leading-[.98]">
-                            After Party du
-                            <br />
-                            RDV de l&apos;Attiéké
-                        </div>
-                        <p className="text-[15.5px] text-[#D9B7A7] leading-[1.55] max-w-[420px]">
-                            Plat d&apos;attiéké, chill, shooting, jeux et
-                            réseautage à Moriland CITY. Pass {fmt(3500)}.
-                        </p>
-                        <div>
-                            <Link
-                                href="/evenements"
-                                className="inline-block border-0 bg-orange text-white px-6.5 py-3.75 rounded-full text-[15px] font-extrabold min-h-11 hover:bg-cream hover:text-deep"
-                            >
-                                Voir l&apos;événement
-                            </Link>
-                        </div>
-                    </div>
-                    <div className="min-h-65 bg-[#101820] relative">
-                        <Image
-                            src="/photos/event-after-party.jpg"
-                            alt="Affiche After Party du RDV de l'Attiéké"
-                            fill
-                            className="object-cover"
-                        />
-                    </div>
-                </Reveal>
-            </section>
+            <ColorBar colors={["#FB6117", "#1B6FD6", "#8CC63F", "#B71D29", "#101820"]} />
 
             {/* ─── Plats vedettes ───────────────────────────────────────────────── */}
+            {featured.length > 0 && (
             <section className="max-w-310 mx-auto px-4.5 pt-[clamp(56px,9vw,92px)] pb-5">
                 <Reveal className="flex items-end justify-between gap-5.5 flex-wrap">
                     <h2 className="font-grifter text-[clamp(36px,4.4vw,60px)] text-ink leading-[.95]">
@@ -169,18 +231,23 @@ export default async function AccueilPage() {
                     </h2>
                     <Link
                         href="/menu"
-                        className="border-0 bg-transparent text-deep text-[15px] font-extrabold hover:text-orange"
+                        className="border-0 bg-transparent text-deep text-xs lg:text-base font-extrabold hover:text-orange"
                     >
                         Voir tout le menu →
                     </Link>
                 </Reveal>
 
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,210px),1fr))] gap-5 mt-9.5">
-                    {featured.map((item) => (
+                    {featured.map((item, i) => (
                         <Reveal
                             key={item.id}
-                            className="bg-white rounded-[26px] overflow-hidden border border-border-light transition hover:-translate-y-1.75 hover:shadow-[0_26px_50px_rgba(122,45,25,.16)]"
+                            className="relative bg-white rounded-[26px] overflow-hidden border border-border-light transition hover:-translate-y-1.75 hover:shadow-[0_26px_50px_rgba(122,45,25,.16)]"
                         >
+                            <CornerArc
+                                color={DISH_ACCENT_COLORS[i % DISH_ACCENT_COLORS.length]}
+                                size={120}
+                                className="-bottom-12 -right-12"
+                            />
                             {item.images.length > 0 ? (
                                 <ImageSwiper
                                     images={item.images}
@@ -215,11 +282,17 @@ export default async function AccueilPage() {
                     ))}
                 </div>
             </section>
+            )}
 
             {/* ─── Teaser fidélité ──────────────────────────────────────────────── */}
             <section className="max-w-310 mx-auto px-4.5 py-[clamp(52px,9vw,86px)]">
                 <Reveal className="rounded-[34px] bg-ink text-cream p-[clamp(24px,4.4vw,54px)] relative overflow-hidden">
                     <div className="animate-float-2 absolute w-[420px] h-[420px] rounded-full bg-orange opacity-28 blur-[60px] -right-20 -top-30" />
+                    <CornerArc color="#1B6FD6" size={260} className="-bottom-24 -left-24" />
+                    <SwashAccent
+                        color="#F4D9C6"
+                        className="hidden sm:block absolute top-7 right-7 w-14 h-14 opacity-50"
+                    />
                     <div className="relative grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[clamp(28px,4vw,46px)] items-center">
                         <div>
                             <div className="text-xs font-extrabold tracking-[.16em] text-orange">
@@ -230,7 +303,7 @@ export default async function AccueilPage() {
                                 <br />
                                 vous rapporte
                             </h2>
-                            <p className="text-[17px] leading-[1.6] text-[#E4C6B7] max-w-[420px] mt-4.5">
+                            <p className="text-sm lg:text-lg leading-[1.6] text-[#E4C6B7] max-w-[420px] mt-4.5">
                                 1 point par {fmt(settings.ptsPerUnit)} dépensés.
                                 À{" "}
                                 {tiers
@@ -241,7 +314,7 @@ export default async function AccueilPage() {
                             </p>
                             <Link
                                 href="/fidelite"
-                                className="inline-block mt-7.5 border-0 bg-orange text-white px-7 py-4 rounded-full text-[15.5px] font-extrabold hover:bg-cream hover:text-deep"
+                                className="inline-block mt-7.5 border-0 bg-orange text-white px-7 py-4 rounded-full text-xs lg:text-base font-extrabold hover:bg-cream hover:text-deep"
                             >
                                 Ouvrir mon espace fidélité
                             </Link>
@@ -252,7 +325,7 @@ export default async function AccueilPage() {
                                     key={t.id}
                                     className="flex items-center flex-wrap gap-2 gap-x-3.5 bg-white/7 border border-white/14 rounded-[18px] px-4.25 py-3.75"
                                 >
-                                    <div className="font-grifter text-[22px] text-orange min-w-18.5">
+                                    <div className="font-grifter text-[15px] text-orange bg-orange/15 rounded-full px-3.5 py-1.5 shrink-0">
                                         {fmtNumber(t.threshold)} pts
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -272,7 +345,7 @@ export default async function AccueilPage() {
 
             {/* ─── 3 étapes ─────────────────────────────────────────────────────── */}
             <section className="max-w-310 mx-auto px-4.5 py-5 pb-[clamp(56px,9vw,92px)]">
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-5.5">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,260px),1fr))] gap-5.5">
                     {[
                         {
                             n: "01",
@@ -289,21 +362,31 @@ export default async function AccueilPage() {
                             title: "On livre, vous gagnez",
                             body: "Suivi en direct jusqu'à votre porte, et les points tombent automatiquement.",
                         },
-                    ].map((s) => (
-                        <Reveal key={s.n}>
-                            <div className="font-grifter text-[46px] text-orange">
+                    ].map((s, i) => (
+                        <Reveal
+                            key={s.n}
+                            className="relative overflow-hidden bg-white rounded-[26px] border border-border-light p-6 transition hover:-translate-y-1.75 hover:shadow-[0_26px_50px_rgba(122,45,25,.16)]"
+                        >
+                            <CornerArc
+                                color={STEP_ACCENT_COLORS[i % STEP_ACCENT_COLORS.length]}
+                                size={100}
+                                className="-top-10 -right-10"
+                            />
+                            <div className="font-grifter text-[46px] text-orange leading-none">
                                 {s.n}
                             </div>
-                            <div className="text-[19px] font-extrabold mt-1.5">
+                            <div className="text-[19px] font-extrabold mt-3 text-ink">
                                 {s.title}
                             </div>
-                            <p className="text-[15px] text-[#6A392C] leading-[1.6] mt-2">
+                            <p className="text-sm lg:text-lg text-[#6A392C] leading-[1.6] mt-2">
                                 {s.body}
                             </p>
                         </Reveal>
                     ))}
                 </div>
             </section>
+
+            <WaveDivider color="#F1DACB" className="opacity-70" />
 
             {/* ─── Bande photo ──────────────────────────────────────────────────── */}
             <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-2.5 max-w-310 mx-auto mb-[clamp(56px,9vw,86px)] px-4.5">
@@ -335,19 +418,95 @@ export default async function AccueilPage() {
                 ))}
             </div>
 
-            {/* ─── La maison ────────────────────────────────────────────────────── */}
-            <section className="bg-cream-2 px-4.5 py-[clamp(52px,9vw,86px)]">
-                <div className="max-w-310 mx-auto grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[clamp(30px,5vw,52px)] items-center">
-                    <Reveal
-                        variant="in"
-                        className="rounded-[28px] aspect-[4/5] overflow-hidden bg-[#EACFBD] relative"
-                    >
+            {/* ─── Bandeau événement ────────────────────────────────────────────── */}
+            <section className="max-w-310 mx-auto px-4.5 pb-[clamp(46px,7vw,74px)]">
+                <Reveal className="rounded-[28px] overflow-hidden bg-ink text-cream grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] items-stretch">
+                    <div className="p-[clamp(24px,3.6vw,40px)] grid content-center gap-3.5">
+                        <div className="flex gap-1.5 items-center">
+                            <span className="w-7.5 h-2 rounded-sm bg-orange" />
+                            <span className="w-4 h-2 rounded-sm bg-[#8CC63F]" />
+                            <span className="w-5.5 h-2 rounded-sm bg-[#1B6FD6]" />
+                            <span className="text-[11.5px] font-extrabold tracking-[.14em] text-orange ml-1.5">
+                                30 AOÛT · HÊVIÉ
+                            </span>
+                        </div>
+                        <div className="font-grifter text-[clamp(28px,3.4vw,44px)] leading-[.98]">
+                            After Party du
+                            <br />
+                            RDV de l&apos;Attiéké
+                        </div>
+                        <p className="text-sm lg:text-lg text-[#D9B7A7] leading-[1.55] max-w-[420px]">
+                            Plat d&apos;attiéké, chill, shooting, jeux et
+                            réseautage à Moriland CITY. Pass {fmt(3500)}.
+                        </p>
+                        <div>
+                            <Link
+                                href="/evenements"
+                                className="inline-block border-0 bg-orange text-white px-6.5 py-3.75 rounded-full text-xs lg:text-base font-extrabold min-h-11 hover:bg-cream hover:text-deep"
+                            >
+                                Voir l&apos;événement
+                            </Link>
+                        </div>
+                    </div>
+                    <div className="min-h-75 md:min-h-100 lg:min-h-130 bg-[#101820] relative">
                         <Image
-                            src="/photos/stand.jpg"
-                            alt="La salle Chez Charly, mur peint Attiéké"
+                            src="/photos/event-after-party.jpg"
+                            alt="Affiche After Party du RDV de l'Attiéké"
                             fill
                             className="object-cover"
                         />
+                    </div>
+                </Reveal>
+            </section>
+
+            {/* ─── La maison ────────────────────────────────────────────────────── */}
+            <section className="bg-cream-2 px-4.5 py-[clamp(52px,9vw,86px)]">
+                <div className="max-w-310 mx-auto grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[clamp(30px,5vw,52px)] items-center">
+                    <Reveal variant="in" className="relative aspect-square">
+                        <div className="animate-float-1 absolute top-[6%] left-[20%] w-[58%] aspect-[4/5] rounded-[28px] overflow-hidden border-[10px] border-deep shadow-[0_40px_80px_rgba(122,45,25,.24)] z-20">
+                            <Image
+                                src="/photos/stand.jpg"
+                                alt="La salle Chez Charly, mur peint Attiéké"
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
+
+                        <div className="animate-float-2 [animation-delay:-2s] absolute top-0 left-0 w-[32%] aspect-square rounded-[20px] overflow-hidden border-[5px] border-cream shadow-[0_18px_38px_rgba(122,45,25,.3)] z-30 -rotate-6">
+                            <Image
+                                src="/photos/maison-2.jpeg"
+                                alt="Clients Chez Charly devant la fresque murale"
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
+
+                        <div className="animate-float-1 [animation-delay:-6s] absolute bottom-[2%] -left-[4%] w-[34%] aspect-[4/5] rounded-[20px] overflow-hidden border-[5px] border-cream shadow-[0_18px_38px_rgba(122,45,25,.3)] z-40 rotate-5">
+                            <Image
+                                src="/photos/maison-3.jpeg"
+                                alt="Ambiance soirée événement Chez Charly"
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
+
+                        <div className="animate-float-2 [animation-delay:-9s] absolute top-[2%] -right-[6%] w-[30%] aspect-square rounded-[20px] overflow-hidden border-[5px] border-cream shadow-[0_18px_38px_rgba(122,45,25,.3)] z-30 rotate-4">
+                            <Image
+                                src="/photos/maison-4.jpeg"
+                                alt="Clientes avec leur commande à emporter Chez Charly"
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
+
+                        <div className="animate-float-1 [animation-delay:-3s] absolute bottom-0 right-[4%] w-[28%] aspect-[4/5] rounded-[20px] overflow-hidden border-[5px] border-cream shadow-[0_18px_38px_rgba(122,45,25,.3)] z-40 -rotate-5">
+                            <Image
+                                src="/photos/maison-5.jpeg"
+                                alt="Cliente attablée Chez Charly"
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
                     </Reveal>
                     <Reveal>
                         <div className="text-xs font-extrabold tracking-[.16em] text-deep">
@@ -358,7 +517,7 @@ export default async function AccueilPage() {
                             <br />
                             servi sans compter
                         </h2>
-                        <p className="text-[17.5px] leading-[1.65] text-[#6A392C] max-w-[520px] mt-5 text-pretty">
+                        <p className="text-sm lg:text-lg leading-[1.65] text-[#6A392C] max-w-[520px] mt-5 text-pretty">
                             Chez Charly, on cuisine comme à la maison : poisson
                             braisé du jour, alloco doré à la minute, attiéké
                             frais. Notre promesse tient en trois mots, et ils
@@ -378,7 +537,9 @@ export default async function AccueilPage() {
                                     Sur place & à emporter
                                 </div>
                                 <div className="text-sm text-[#6A392C] mt-1">
-                                    32 couverts
+                                    {pickupZone
+                                        ? pickupZone.etaLabel.replace(/^Prêt en /, "")
+                                        : "Retrait rapide"}
                                 </div>
                             </div>
                         </div>
@@ -411,7 +572,7 @@ export default async function AccueilPage() {
                                 <div className="text-xs font-extrabold tracking-[.12em] text-label-2">
                                     ADRESSE
                                 </div>
-                                <div className="text-[17px] text-[#4A2318] leading-[1.5]">
+                                <div className="text-sm lg:text-lg text-[#4A2318] leading-[1.5]">
                                     Abomey-Calavi, Womey Adjikpegon
                                     <br />
                                     en face du bar Nid d&apos;oiseau
@@ -421,7 +582,7 @@ export default async function AccueilPage() {
                                 <div className="text-xs font-extrabold tracking-[.12em] text-label-2">
                                     LIVRAISON
                                 </div>
-                                <div className="text-[17px] text-[#4A2318]">
+                                <div className="text-sm lg:text-lg text-[#4A2318]">
                                     Calavi, Womey, Godomey et Cotonou
                                 </div>
                             </div>
@@ -429,11 +590,15 @@ export default async function AccueilPage() {
                     </Reveal>
                     <Reveal
                         variant="in"
-                        className="rounded-[26px] aspect-[4/3] bg-[repeating-linear-gradient(52deg,#F1DACB_0_16px,#E8CDBA_16px_32px)] grid place-items-center font-mono text-xs text-[#96674F] text-center leading-[1.8]"
+                        className="rounded-[26px] aspect-[4/3] overflow-hidden bg-[#F1DACB]"
                     >
-                        CARTE / PLAN D&apos;ACCÈS
-                        <br />
-                        Womey Adjikpegon
+                        <iframe
+                            src="https://www.google.com/maps?q=Chez+Charly,+Abomey-Calavi,+Womey+Adjikpegon,+en+face+du+bar+Nid+d%27oiseau,+B%C3%A9nin&output=embed"
+                            title="Chez Charly - Abomey-Calavi, Womey Adjikpegon"
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            className="w-full h-full border-0"
+                        />
                     </Reveal>
                 </div>
             </section>

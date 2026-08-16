@@ -94,10 +94,10 @@ body {
  * shadcn (le texte hérite normalement de l'ancêtre, mais une règle qui
  * cible l'élément directement gagne toujours sur l'héritage).
  */
-.site-scope a {
+.site-scope a:not(footer a) {
   color: var(--color-deep);
 }
-.site-scope a:hover {
+.site-scope a:not(footer a):hover {
   color: var(--color-orange);
 }
 

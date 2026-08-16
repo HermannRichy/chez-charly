@@ -51,8 +51,19 @@ export function Footer() {
           </div>
         </div>
       </div>
-      <div className="max-w-310 mx-auto mt-8.5 pt-5 border-t border-[#C6A292]/20 text-[12.5px] text-[#8E7061]">
-        © 2026 Chez Charly. Tous droits réservés.
+      <div className="max-w-310 mx-auto mt-8.5 pt-5 border-t border-[#C6A292]/20 text-[12.5px] text-[#8E7061] flex flex-wrap items-center justify-between gap-2">
+        <span>© 2026 Chez Charly. Tous droits réservés.</span>
+        <span>
+          Développé par{" "}
+          <a
+            href="https://hermann-richy-v3.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#C6A292] hover:text-orange"
+          >
+            Hermann Richy
+          </a>
+        </span>
       </div>
     </footer>
   );
