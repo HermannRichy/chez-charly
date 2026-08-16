@@ -3,6 +3,32 @@ import Link from "next/link";
 import { Reveal } from "@/components/site/Reveal";
 import { fmt, fmtNumber } from "@/lib/format";
 
+/** Photos réelles de l'édition précédente (28 juin), fournies dans public/rdv-attieke-event. */
+const PAST_EVENT_PHOTOS = [
+  { src: "/rdv-attieke-event/lieu.jpeg", alt: "Vue aérienne du lieu du RDV de l'Attiéké" },
+  { src: "/rdv-attieke-event/jeux.jpeg", alt: "Partie de Puissance 4 pendant la soirée" },
+  { src: "/rdv-attieke-event/plats.jpeg", alt: "Poissons braisés servis aux invités" },
+  { src: "/rdv-attieke-event/vibes.jpeg", alt: "Ambiance de la soirée, décorée aux couleurs de l'événement" },
+  { src: "/rdv-attieke-event/miam.jpeg", alt: "Un invité savourant son assiette" },
+  { src: "/rdv-attieke-event/aaa.jpeg", alt: "Invitées en pleine soirée" },
+  { src: "/rdv-attieke-event/babshv.jpeg", alt: "Partie de baby-foot entre invités" },
+  { src: "/rdv-attieke-event/bczjhcjs.jpeg", alt: "Groupe d'amies souriantes à la soirée" },
+  { src: "/rdv-attieke-event/bjhcjhdcb.jpeg", alt: "Invités du RDV de l'Attiéké" },
+  { src: "/rdv-attieke-event/bvdjhv.jpeg", alt: "Un invité savourant du poulet grillé" },
+  { src: "/rdv-attieke-event/crocsvsjh.jpeg", alt: "Préparation des grillades sur place" },
+  { src: "/rdv-attieke-event/fghiiu.jpeg", alt: "Invitée à la soirée" },
+  { src: "/rdv-attieke-event/hdkdj.jpeg", alt: "Invitée devant le stand" },
+  { src: "/rdv-attieke-event/hjehfgej.jpeg", alt: "Jeune invitée du RDV de l'Attiéké" },
+  { src: "/rdv-attieke-event/jvjsxcvsjh.jpeg", alt: "Invité dansant pendant la soirée" },
+  { src: "/rdv-attieke-event/mshdj.jpeg", alt: "Table conviviale autour des grillades" },
+  { src: "/rdv-attieke-event/phhnchdn.jpeg", alt: "Stand Chez Charly pendant l'événement" },
+  { src: "/rdv-attieke-event/pjddbbx.jpeg", alt: "Deux invités dégustant leur plat" },
+  { src: "/rdv-attieke-event/sobjscdh.jpeg", alt: "Invitée posant avec son assiette" },
+  { src: "/rdv-attieke-event/whatsapp-25.jpeg", alt: "Photo souvenir du RDV de l'Attiéké" },
+  { src: "/rdv-attieke-event/whatsapp-26.jpeg", alt: "Photo souvenir du RDV de l'Attiéké" },
+  { src: "/rdv-attieke-event/whatsapp-27.jpeg", alt: "Photo souvenir du RDV de l'Attiéké" },
+];
+
 export default function EvenementsPage() {
   return (
     <div>
@@ -128,8 +154,8 @@ export default function EvenementsPage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-3 mt-7">
-            <div className="aspect-square rounded-[22px] overflow-hidden bg-ink relative">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mt-7">
+            <div className="aspect-square rounded-[18px] overflow-hidden bg-ink relative">
               <Image
                 src="/photos/event-rdv-attieke.jpg"
                 alt="Affiche Le RDV de l'Attiéké du 28 juin"
@@ -137,13 +163,8 @@ export default function EvenementsPage() {
                 className="object-contain"
               />
             </div>
-            {[
-              { src: "/photos/charly.jpg", alt: "Invité avec son sac Chez Charly" },
-              { src: "/photos/commande-emballee.jpg", alt: "Sacs de commandes sur l'herbe" },
-              { src: "/photos/bouffe.jpg", alt: "Pâtes Chez Charly servies à l'événement" },
-              { src: "/photos/attieke-piron.jpg", alt: "Attiéké et piron servis en salle" },
-            ].map((p) => (
-              <div key={p.src} className="aspect-[4/3] rounded-[22px] overflow-hidden relative">
+            {PAST_EVENT_PHOTOS.map((p) => (
+              <div key={p.src} className="aspect-square rounded-[18px] overflow-hidden relative">
                 <Image src={p.src} alt={p.alt} fill className="object-cover" />
               </div>
             ))}
