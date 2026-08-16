@@ -8,7 +8,7 @@ import { PlaceholderPhoto } from "@/components/site/PlaceholderPhoto";
 import { ImageSwiper } from "@/components/site/ImageSwiper";
 import { Reveal } from "@/components/site/Reveal";
 import { AddToCartButton } from "@/components/site/AddToCartButton";
-import { ColorBar, CornerArc, WaveDivider, SwashAccent } from "@/components/site/ColorAccent";
+import { CurveAccent } from "@/components/site/CurveAccent";
 
 /** Réduit un intervalle de délai type "10–20 min" à sa borne haute ("20 min") pour tenir dans le chiffre-clé du hero. */
 function shortEta(label: string): string {
@@ -19,9 +19,6 @@ function shortEta(label: string): string {
 
 const OPEN_HOUR = 10;
 const CLOSE_HOUR = 23;
-
-const DISH_ACCENT_COLORS = ["#FB6117", "#1B6FD6", "#8CC63F", "#B71D29"];
-const STEP_ACCENT_COLORS = ["#FB6117", "#8CC63F", "#1B6FD6"];
 
 /** Ouvert/fermé calculé sur l'heure réelle du Bénin (UTC+1, pas d'heure d'été), pas sur l'heure du serveur. */
 function getOpenStatus(): { open: boolean; label: string } {
@@ -90,6 +87,20 @@ export default async function AccueilPage() {
             <section className="relative px-4.5 pt-[clamp(38px,7vw,74px)] pb-[clamp(54px,8vw,96px)] overflow-hidden bg-[radial-gradient(1100px_640px_at_78%_8%,#FFE2CE_0%,rgba(255,226,206,0)_62%),#FFF4EC]">
                 <div className="animate-float-1 absolute w-[460px] h-[460px] rounded-full bg-orange opacity-16 blur-[10px] -top-32.5 -right-20" />
                 <div className="animate-float-2 absolute w-[300px] h-[300px] rounded-full bg-deep opacity-12 blur-[8px] -bottom-27.5 -left-17.5" />
+                <CurveAccent
+                    variant="l"
+                    color="#1B6FD6"
+                    strokeWidth={15}
+                    rotate={20}
+                    className="absolute -top-6 -left-8 w-45 h-45 sm:w-65 sm:h-65 lg:w-95 lg:h-95 opacity-35"
+                />
+                <CurveAccent
+                    variant="arc"
+                    color="#B71D29"
+                    strokeWidth={16}
+                    rotate={120}
+                    className="absolute -bottom-8 -right-8 w-40 h-40 sm:w-58 sm:h-58 lg:w-85 lg:h-85 opacity-30"
+                />
 
                 <div className="max-w-310 mx-auto grid grid-cols-[repeat(auto-fit,minmax(min(100%,330px),1fr))] gap-[clamp(30px,5vw,54px)] items-center relative">
                     <div>
@@ -218,11 +229,15 @@ export default async function AccueilPage() {
 
             <Marquee />
 
-            <ColorBar colors={["#FB6117", "#1B6FD6", "#8CC63F", "#B71D29", "#101820"]} />
-
             {/* ─── Plats vedettes ───────────────────────────────────────────────── */}
             {featured.length > 0 && (
-            <section className="max-w-310 mx-auto px-4.5 pt-[clamp(56px,9vw,92px)] pb-5">
+            <section className="relative overflow-hidden max-w-310 mx-auto px-4.5 pt-[clamp(56px,9vw,92px)] pb-5">
+                <CurveAccent
+                    variant="wave"
+                    color="#FB6117"
+                    rotate={-8}
+                    className="absolute top-2 right-0 w-22.5 h-22.5 sm:w-32.5 sm:h-32.5 lg:w-40 lg:h-40 opacity-25"
+                />
                 <Reveal className="flex items-end justify-between gap-5.5 flex-wrap">
                     <h2 className="font-grifter text-[clamp(36px,4.4vw,60px)] text-ink leading-[.95]">
                         Les plats qu&apos;on
@@ -238,16 +253,11 @@ export default async function AccueilPage() {
                 </Reveal>
 
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,210px),1fr))] gap-5 mt-9.5">
-                    {featured.map((item, i) => (
+                    {featured.map((item) => (
                         <Reveal
                             key={item.id}
-                            className="relative bg-white rounded-[26px] overflow-hidden border border-border-light transition hover:-translate-y-1.75 hover:shadow-[0_26px_50px_rgba(122,45,25,.16)]"
+                            className="bg-white rounded-[26px] overflow-hidden border border-border-light transition hover:-translate-y-1.75 hover:shadow-[0_26px_50px_rgba(122,45,25,.16)]"
                         >
-                            <CornerArc
-                                color={DISH_ACCENT_COLORS[i % DISH_ACCENT_COLORS.length]}
-                                size={120}
-                                className="-bottom-12 -right-12"
-                            />
                             {item.images.length > 0 ? (
                                 <ImageSwiper
                                     images={item.images}
@@ -288,10 +298,11 @@ export default async function AccueilPage() {
             <section className="max-w-310 mx-auto px-4.5 py-[clamp(52px,9vw,86px)]">
                 <Reveal className="rounded-[34px] bg-ink text-cream p-[clamp(24px,4.4vw,54px)] relative overflow-hidden">
                     <div className="animate-float-2 absolute w-[420px] h-[420px] rounded-full bg-orange opacity-28 blur-[60px] -right-20 -top-30" />
-                    <CornerArc color="#1B6FD6" size={260} className="-bottom-24 -left-24" />
-                    <SwashAccent
-                        color="#F4D9C6"
-                        className="hidden sm:block absolute top-7 right-7 w-14 h-14 opacity-50"
+                    <CurveAccent
+                        variant="spiral"
+                        color="#E4C6B7"
+                        rotate={40}
+                        className="absolute -bottom-8 -left-8 w-20 h-20 sm:w-27.5 sm:h-27.5 lg:w-32.5 lg:h-32.5 opacity-30"
                     />
                     <div className="relative grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[clamp(28px,4vw,46px)] items-center">
                         <div>
@@ -344,7 +355,13 @@ export default async function AccueilPage() {
             </section>
 
             {/* ─── 3 étapes ─────────────────────────────────────────────────────── */}
-            <section className="max-w-310 mx-auto px-4.5 py-5 pb-[clamp(56px,9vw,92px)]">
+            <section className="relative overflow-hidden max-w-310 mx-auto px-4.5 py-5 pb-[clamp(56px,9vw,92px)]">
+                <CurveAccent
+                    variant="swoosh"
+                    color="#8CC63F"
+                    rotate={200}
+                    className="absolute bottom-0 left-0 w-20 h-20 sm:w-30 sm:h-30 lg:w-37.5 lg:h-37.5 opacity-25"
+                />
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,260px),1fr))] gap-5.5">
                     {[
                         {
@@ -362,16 +379,11 @@ export default async function AccueilPage() {
                             title: "On livre, vous gagnez",
                             body: "Suivi en direct jusqu'à votre porte, et les points tombent automatiquement.",
                         },
-                    ].map((s, i) => (
+                    ].map((s) => (
                         <Reveal
                             key={s.n}
-                            className="relative overflow-hidden bg-white rounded-[26px] border border-border-light p-6 transition hover:-translate-y-1.75 hover:shadow-[0_26px_50px_rgba(122,45,25,.16)]"
+                            className="bg-white rounded-[26px] border border-border-light p-6 transition hover:-translate-y-1.75 hover:shadow-[0_26px_50px_rgba(122,45,25,.16)]"
                         >
-                            <CornerArc
-                                color={STEP_ACCENT_COLORS[i % STEP_ACCENT_COLORS.length]}
-                                size={100}
-                                className="-top-10 -right-10"
-                            />
                             <div className="font-grifter text-[46px] text-orange leading-none">
                                 {s.n}
                             </div>
@@ -385,8 +397,6 @@ export default async function AccueilPage() {
                     ))}
                 </div>
             </section>
-
-            <WaveDivider color="#F1DACB" className="opacity-70" />
 
             {/* ─── Bande photo ──────────────────────────────────────────────────── */}
             <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-2.5 max-w-310 mx-auto mb-[clamp(56px,9vw,86px)] px-4.5">
@@ -420,7 +430,19 @@ export default async function AccueilPage() {
 
             {/* ─── Bandeau événement ────────────────────────────────────────────── */}
             <section className="max-w-310 mx-auto px-4.5 pb-[clamp(46px,7vw,74px)]">
-                <Reveal className="rounded-[28px] overflow-hidden bg-ink text-cream grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] items-stretch">
+                <Reveal className="relative rounded-[28px] overflow-hidden bg-ink text-cream grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] items-stretch">
+                    <CurveAccent
+                        variant="arc"
+                        color="#1B6FD6"
+                        rotate={-30}
+                        className="absolute -top-8 -right-8 w-25 h-25 sm:w-35 sm:h-35 lg:w-45 lg:h-45 opacity-25"
+                    />
+                    <CurveAccent
+                        variant="e"
+                        color="#FB6117"
+                        rotate={160}
+                        className="absolute -bottom-4 left-4 w-16 h-16 sm:w-22.5 sm:h-22.5 lg:w-27.5 lg:h-27.5 opacity-20"
+                    />
                     <div className="p-[clamp(24px,3.6vw,40px)] grid content-center gap-3.5">
                         <div className="flex gap-1.5 items-center">
                             <span className="w-7.5 h-2 rounded-sm bg-orange" />
@@ -460,7 +482,13 @@ export default async function AccueilPage() {
             </section>
 
             {/* ─── La maison ────────────────────────────────────────────────────── */}
-            <section className="bg-cream-2 px-4.5 py-[clamp(52px,9vw,86px)]">
+            <section className="relative overflow-hidden bg-cream-2 px-4.5 py-[clamp(52px,9vw,86px)]">
+                <CurveAccent
+                    variant="e"
+                    color="#B71D29"
+                    rotate={-15}
+                    className="absolute top-6 right-0 w-30 h-30 sm:w-42.5 sm:h-42.5 lg:w-55 lg:h-55 opacity-20"
+                />
                 <div className="max-w-310 mx-auto grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[clamp(30px,5vw,52px)] items-center">
                     <Reveal variant="in" className="relative aspect-square">
                         <div className="animate-float-1 absolute top-[6%] left-[20%] w-[58%] aspect-[4/5] rounded-[28px] overflow-hidden border-[10px] border-deep shadow-[0_40px_80px_rgba(122,45,25,.24)] z-20">
