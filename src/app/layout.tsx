@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CookieBanner } from "@/components/site/CookieBanner";
 import { SignupPrompt } from "@/components/site/SignupPrompt";
+import { InstallPrompt } from "@/components/site/InstallPrompt";
 import "./globals.css";
 
 // Police des titres/prix/chiffres fournie par le client (README : vérifier la
@@ -77,6 +78,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <TooltipProvider>{children}</TooltipProvider>
         <CookieBanner />
+        <InstallPrompt />
         <SignupPrompt />
         <Toaster
           position="bottom-center"
