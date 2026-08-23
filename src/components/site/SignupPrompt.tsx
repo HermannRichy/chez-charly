@@ -7,17 +7,19 @@ import { usePathname } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 
 const SEEN_KEY = "cc_signup_prompt_seen";
-const DELAY_MS = 15000;
+// L'arrivée sur /panier montre déjà une intention d'achat : plus besoin
+// d'attendre 15s sur une page quelconque, un court délai suffit.
+const DELAY_MS = 2000;
 
 export function SignupPrompt() {
   const pathname = usePathname();
   const { data: session, isPending } = useSession();
   const [visible, setVisible] = useState(false);
 
-  const excluded = pathname?.startsWith("/admin") || pathname === "/login" || pathname === "/signup";
+  const isPanier = pathname === "/panier";
 
   useEffect(() => {
-    if (excluded || isPending || session?.user) return;
+    if (!isPanier || isPending || session?.user) return;
     if (typeof window === "undefined" || localStorage.getItem(SEEN_KEY)) return;
 
     const timer = setTimeout(() => {
@@ -25,7 +27,7 @@ export function SignupPrompt() {
       setVisible(true);
     }, DELAY_MS);
     return () => clearTimeout(timer);
-  }, [excluded, isPending, session?.user]);
+  }, [isPanier, isPending, session?.user]);
 
   if (!visible || typeof document === "undefined") return null;
 
