@@ -9,6 +9,7 @@ import {
   IconToolsKitchen2,
   IconTruckDelivery,
   IconGift,
+  IconUsers,
   IconArrowLeft,
 } from "@tabler/icons-react";
 import {
@@ -33,6 +34,7 @@ const NAV = [
   { href: "/admin/menu", label: "Menu", icon: IconToolsKitchen2 },
   { href: "/admin/livraison", label: "Livraison", icon: IconTruckDelivery },
   { href: "/admin/fidelite", label: "Fidélité", icon: IconGift },
+  { href: "/admin/utilisateurs", label: "Utilisateurs", icon: IconUsers },
 ];
 
 // SidebarMenuButton pose `data-active={isActive}`, et React ne retire jamais

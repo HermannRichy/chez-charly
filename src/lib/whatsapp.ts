@@ -29,3 +29,9 @@ export function buildStatusWhatsAppLink(input: {
   const number = toWhatsAppNumber(input.phone);
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }
+
+export function buildWelcomeWhatsAppLink(input: { phone: string; name: string }): string {
+  const message = `Bonjour ${input.name}, bienvenue chez Chez Charly ! Ravis de vous compter parmi nous - à très vite pour votre prochaine commande.`;
+  const number = toWhatsAppNumber(input.phone);
+  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+}
