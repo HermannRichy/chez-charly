@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { IconShare, IconSquareRoundedPlus } from "@tabler/icons-react";
+import { IconShare2, IconSquarePlus } from "@tabler/icons-react";
 
 const SEEN_KEY = "cc_install_prompt_seen";
 // Même clé que CookieBanner : on laisse le bandeau cookies passer en premier
@@ -45,11 +45,19 @@ export function InstallPrompt() {
   return (
     <div className="fixed inset-x-0 bottom-0 z-65 px-4 pb-4 sm:px-6 sm:pb-6">
       <div className="max-w-2xl mx-auto bg-ink text-cream rounded-[22px] shadow-[0_20px_44px_rgba(36,16,12,.34)] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4">
-        <p className="text-sm leading-relaxed flex-1">
-          Installez Chez Charly sur votre écran d&apos;accueil : appuyez sur{" "}
-          <IconShare size={15} className="inline -mt-0.5" /> puis « Sur l&apos;écran d&apos;accueil »{" "}
-          <IconSquareRoundedPlus size={15} className="inline -mt-0.5" />.
-        </p>
+        <div className="flex-1">
+          <p className="text-sm font-extrabold mb-1.5">Installez Chez Charly sur votre écran d&apos;accueil</p>
+          <ol className="text-sm leading-relaxed text-cream/85 grid gap-0.5 list-decimal list-inside">
+            <li>
+              Appuyez sur <IconShare2 size={15} className="inline -mt-0.5" /> Partager, en bas de l&apos;écran
+            </li>
+            <li>
+              Faites défiler et choisissez « Sur l&apos;écran d&apos;accueil »{" "}
+              <IconSquarePlus size={15} className="inline -mt-0.5" />
+            </li>
+            <li>Confirmez avec « Ajouter »</li>
+          </ol>
+        </div>
         <button
           type="button"
           onClick={dismiss}
