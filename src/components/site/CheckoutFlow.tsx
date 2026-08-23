@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { fmt } from "@/lib/format";
 import { confirmOrderAction } from "@/app/(site)/commande/actions";
+import { subscribeToPush } from "@/lib/push-client";
 
 type PaymentMethod = { provider: "MOMO" | "MOOV"; label: string; number: string; holder: string };
 
@@ -57,6 +58,11 @@ export function CheckoutFlow({
   }
 
   function confirm() {
+    // Déclenché directement par le clic (geste utilisateur requis par les
+    // navigateurs) : best-effort, silencieux si refusé/non supporté,
+    // n'attend pas et ne bloque jamais la confirmation de commande.
+    void subscribeToPush();
+
     startConfirm(async () => {
       try {
         const { orderNumber } = await confirmOrderAction({
