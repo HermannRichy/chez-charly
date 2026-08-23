@@ -17,6 +17,14 @@ export const STATUS_TRACK_LABEL: Record<OrderStatus, string> = {
   DELIVERED: "Livré",
 };
 
+/** Corps des notifications push envoyées au changement de statut (voir advanceStatusAction). */
+export const STATUS_PUSH_BODY: Record<OrderStatus, string> = {
+  RECEIVED: "Votre commande a bien été reçue - on s'y met tout de suite.",
+  PREPARING: "Votre commande est en cours de préparation.",
+  ON_THE_WAY: "Votre commande est en route !",
+  DELIVERED: "Votre commande a été livrée. Merci pour votre commande chez Chez Charly !",
+};
+
 export function statusIndex(status: OrderStatus): number {
   return STATUS_FLOW.indexOf(status);
 }

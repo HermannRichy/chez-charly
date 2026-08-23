@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireStaff } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { nextStatus, prevStatus, STATUS_TRACK_LABEL } from "@/lib/order-status";
+import { nextStatus, prevStatus, STATUS_PUSH_BODY } from "@/lib/order-status";
 import { sendPushToUser } from "@/lib/push";
 
 function revalidate() {
@@ -40,7 +40,7 @@ export async function advanceStatusAction(orderId: string, direction: 1 | -1) {
 
   await sendPushToUser(order.userId, {
     title: `Commande ${order.orderNumber}`,
-    body: STATUS_TRACK_LABEL[status],
+    body: STATUS_PUSH_BODY[status],
     url: `/suivi/${order.orderNumber}`,
   });
 }
