@@ -20,6 +20,11 @@ export async function decrementCartAction(menuItemId: string) {
   revalidateCartViews();
 }
 
+export async function removeFromCartAction(menuItemId: string) {
+  await cart.removeFromCart(menuItemId);
+  revalidateCartViews();
+}
+
 export async function clearCartAction() {
   await cart.clearCart();
   revalidateCartViews();

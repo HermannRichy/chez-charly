@@ -5,6 +5,7 @@ import { getSettings, computeFee, computePoints } from "@/lib/pricing";
 import { fmt, fmtNumber } from "@/lib/format";
 import { PlaceholderPhoto } from "@/components/site/PlaceholderPhoto";
 import { MenuLineControls } from "@/components/site/MenuLineControls";
+import { RemoveLineButton } from "@/components/site/RemoveLineButton";
 import { ClearCartButton } from "@/components/site/ClearCartButton";
 import { ZonePicker } from "@/components/site/ZonePicker";
 
@@ -58,6 +59,7 @@ export default async function PanierPage() {
                 <div className="font-grifter text-xl text-deep min-w-20 text-right ml-auto">
                   {fmt(l.lineTotal)}
                 </div>
+                <RemoveLineButton menuItemId={l.menuItemId} />
               </div>
             ))}
             <ClearCartButton />

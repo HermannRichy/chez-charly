@@ -127,6 +127,11 @@ export async function decrementCart(menuItemId: string) {
   await writeStoredItems(stored.filter((i) => i.q > 0));
 }
 
+export async function removeFromCart(menuItemId: string) {
+  const stored = await readStoredItems();
+  await writeStoredItems(stored.filter((i) => i.id !== menuItemId));
+}
+
 export async function clearCart() {
   await writeStoredItems([]);
 }
