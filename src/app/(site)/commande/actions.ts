@@ -8,6 +8,7 @@ import { getCart, clearCart } from "@/lib/cart";
 import { getSelectedZone } from "@/lib/zone";
 import { getSettings, computeFee, computePoints } from "@/lib/pricing";
 import { getSessionUser } from "@/lib/session";
+import { sendPushToUser } from "@/lib/push";
 
 const schema = z
   .object({
@@ -61,7 +62,7 @@ export async function confirmOrderAction(
   const total = cart.subtotal + fee;
   const pointsAwarded = computePoints(total, settings.ptsPerUnit);
 
-  const order = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const count = await tx.order.count();
     const orderNumber = `CC-${2419 + count}`;
 
@@ -96,15 +97,16 @@ export async function confirmOrderAction(
     const before = user.points ?? 0;
     const after = before + pointsAwarded;
 
-    const tiersCrossed = await tx.loyaltyTier.count({
+    const crossedTiers = await tx.loyaltyTier.findMany({
       where: { threshold: { gt: before, lte: after } },
+      orderBy: { threshold: "desc" },
     });
 
     await tx.user.update({
       where: { id: user.id },
       data: {
         points: after,
-        spinsAvailable: { increment: tiersCrossed },
+        spinsAvailable: { increment: crossedTiers.length },
         // Garde le profil à jour pour préremplir le prochain checkout, sans
         // écraser le nom (celui du compte reste la source pour l'admin).
         phone: data.customerPhone,
@@ -121,8 +123,16 @@ export async function confirmOrderAction(
       },
     });
 
-    return created;
+    return { order: created, topTierCrossed: crossedTiers[0] };
   });
+
+  if (result.topTierCrossed) {
+    await sendPushToUser(user.id, {
+      title: "Palier de fidélité atteint !",
+      body: `Vous avez débloqué « ${result.topTierCrossed.name} » et un tour de roue en plus.`,
+      url: "/fidelite",
+    });
+  }
 
   await clearCart();
 
@@ -131,5 +141,5 @@ export async function confirmOrderAction(
   revalidatePath("/fidelite");
   revalidatePath("/admin");
 
-  return { orderNumber: order.orderNumber };
+  return { orderNumber: result.order.orderNumber };
 }

@@ -52,10 +52,11 @@ model User {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  sessions   Session[]
-  accounts   Account[]
-  orders     Order[]
-  loyaltyTxs LoyaltyTx[]
+  sessions          Session[]
+  accounts          Account[]
+  orders            Order[]
+  loyaltyTxs        LoyaltyTx[]
+  pushSubscriptions PushSubscription[]
 }
 
 model Session {
@@ -172,6 +173,20 @@ model WheelPrize {
   id        String @id @default(cuid())
   label     String
   sortOrder Int    @unique
+}
+
+/// Un abonnement par navigateur/appareil - un même client peut en avoir
+/// plusieurs (téléphone + PC). `endpoint` identifie l'appareil de façon
+/// unique auprès du service de push (FCM, APNs...).
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model LoyaltyTx {

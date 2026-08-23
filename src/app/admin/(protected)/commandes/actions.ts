@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { requireStaff } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { nextStatus, prevStatus } from "@/lib/order-status";
+import { nextStatus, prevStatus, STATUS_TRACK_LABEL } from "@/lib/order-status";
+import { sendPushToUser } from "@/lib/push";
 
 function revalidate() {
   revalidatePath("/admin");
@@ -13,14 +14,33 @@ function revalidate() {
 
 export async function verifyPaymentAction(orderId: string) {
   await requireStaff();
-  await prisma.order.update({ where: { id: orderId }, data: { verified: true } });
+  const order = await prisma.order.update({
+    where: { id: orderId },
+    data: { verified: true },
+    select: { userId: true, orderNumber: true },
+  });
   revalidate();
+
+  await sendPushToUser(order.userId, {
+    title: `Commande ${order.orderNumber}`,
+    body: "Paiement vérifié - votre commande est confirmée.",
+    url: `/suivi/${order.orderNumber}`,
+  });
 }
 
 export async function advanceStatusAction(orderId: string, direction: 1 | -1) {
   await requireStaff();
-  const order = await prisma.order.findUniqueOrThrow({ where: { id: orderId }, select: { status: true } });
+  const order = await prisma.order.findUniqueOrThrow({
+    where: { id: orderId },
+    select: { status: true, userId: true, orderNumber: true },
+  });
   const status = direction === 1 ? nextStatus(order.status) : prevStatus(order.status);
   await prisma.order.update({ where: { id: orderId }, data: { status } });
   revalidate();
+
+  await sendPushToUser(order.userId, {
+    title: `Commande ${order.orderNumber}`,
+    body: STATUS_TRACK_LABEL[status],
+    url: `/suivi/${order.orderNumber}`,
+  });
 }

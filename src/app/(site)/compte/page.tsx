@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireClient } from "@/lib/session";
 import { Avatar } from "@/components/site/Avatar";
 import { LogoutButton } from "@/components/site/LogoutButton";
+import { PushNotificationToggle } from "@/components/site/PushNotificationToggle";
 
 export default async function ComptePage() {
   const user = await requireClient("/compte");
@@ -28,7 +29,8 @@ export default async function ComptePage() {
         </Link>
       )}
 
-      <div className="mt-7.5 max-w-90">
+      <div className="mt-7.5 max-w-90 grid gap-3">
+        <PushNotificationToggle />
         <LogoutButton />
       </div>
     </div>
