@@ -26,8 +26,11 @@ export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
       return;
     }
 
+    // callbackUrl vaut "/" par défaut (login direct, sans redirection) : dans
+    // ce cas seulement, un STAFF part sur le dashboard. Sinon on respecte la
+    // page que l'utilisateur voulait initialement visiter.
     const role = (data?.user as { role?: string } | undefined)?.role;
-    router.push(role === "STAFF" ? "/admin" : callbackUrl);
+    router.push(callbackUrl !== "/" ? callbackUrl : role === "STAFF" ? "/admin" : "/");
     router.refresh();
   }
 
