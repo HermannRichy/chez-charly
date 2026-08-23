@@ -8,7 +8,8 @@ import { getCart, clearCart } from "@/lib/cart";
 import { getSelectedZone } from "@/lib/zone";
 import { getSettings, computeFee, computePoints } from "@/lib/pricing";
 import { getSessionUser } from "@/lib/session";
-import { sendPushToUser } from "@/lib/push";
+import { sendPushToUser, sendPushToStaff } from "@/lib/push";
+import { fmt } from "@/lib/format";
 
 const schema = z
   .object({
@@ -126,11 +127,23 @@ export async function confirmOrderAction(
     return { order: created, topTierCrossed: crossedTiers[0] };
   });
 
+  await sendPushToStaff({
+    title: "Nouvelle commande",
+    body: `${result.order.orderNumber} · ${data.customerName} · ${fmt(total)}`,
+    url: `/admin/commandes/${result.order.id}`,
+  });
+
   if (result.topTierCrossed) {
     await sendPushToUser(user.id, {
       title: "Palier de fidélité atteint !",
       body: `Vous avez débloqué « ${result.topTierCrossed.name} » et un tour de roue en plus.`,
       url: "/fidelite",
+    });
+
+    await sendPushToStaff({
+      title: "Lot de fidélité à préparer",
+      body: `${data.customerName} a débloqué « ${result.topTierCrossed.name} » - ${result.topTierCrossed.reward}`,
+      url: `/admin/commandes/${result.order.id}`,
     });
   }
 

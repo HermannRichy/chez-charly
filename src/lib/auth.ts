@@ -4,6 +4,7 @@ import { admin } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { prisma } from "@/lib/prisma";
 import { ac, STAFF, CLIENT } from "@/lib/auth-permissions";
+import { sendPushToStaff } from "@/lib/push";
 
 /**
  * Un seul système de compte pour tout le monde (staff ET clients), comme
@@ -29,6 +30,20 @@ export const auth = betterAuth({
       address: { type: "string", required: false, input: true, defaultValue: "" },
       points: { type: "number", required: false, input: false, defaultValue: 0 },
       spinsAvailable: { type: "number", required: false, input: false, defaultValue: 0 },
+    },
+  },
+
+  databaseHooks: {
+    user: {
+      create: {
+        async after(user) {
+          await sendPushToStaff({
+            title: "Nouveau compte créé",
+            body: `${user.name} (${user.email}) vient de s'inscrire.`,
+            url: "/admin/utilisateurs",
+          });
+        },
+      },
     },
   },
 

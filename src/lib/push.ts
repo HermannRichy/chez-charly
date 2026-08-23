@@ -1,4 +1,5 @@
 import webpush, { WebPushError } from "web-push";
+import type { PushSubscription } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 // Sujet requis par la spec VAPID (contact en cas d'abus signalé par un
@@ -9,13 +10,10 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY!,
 );
 
-export async function sendPushToUser(
-  userId: string,
-  payload: { title: string; body: string; url?: string },
-) {
-  const subs = await prisma.pushSubscription.findMany({ where: { userId } });
-  if (subs.length === 0) return;
+type PushPayload = { title: string; body: string; url?: string };
 
+async function sendToSubscriptions(subs: PushSubscription[], payload: PushPayload) {
+  if (subs.length === 0) return;
   const body = JSON.stringify(payload);
 
   await Promise.all(
@@ -33,4 +31,15 @@ export async function sendPushToUser(
       }
     }),
   );
+}
+
+export async function sendPushToUser(userId: string, payload: PushPayload) {
+  const subs = await prisma.pushSubscription.findMany({ where: { userId } });
+  await sendToSubscriptions(subs, payload);
+}
+
+/** Notifie tous les comptes STAFF abonnés (nouvelle commande, nouveau compte...). */
+export async function sendPushToStaff(payload: PushPayload) {
+  const subs = await prisma.pushSubscription.findMany({ where: { user: { role: "STAFF" } } });
+  await sendToSubscriptions(subs, payload);
 }
