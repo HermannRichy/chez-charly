@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import type { Role } from "@prisma/client";
-import { IconUsers, IconBrandWhatsapp, IconShieldCheck, IconShieldOff } from "@tabler/icons-react";
+import { IconUsers, IconBrandWhatsapp, IconShieldCheck, IconShieldOff, IconTrash } from "@tabler/icons-react";
 import { fmtNumber } from "@/lib/format";
 import { buildWelcomeWhatsAppLink } from "@/lib/whatsapp";
 import { RowActions } from "@/components/admin/ui/row-actions";
@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { setUserRoleAction } from "@/app/admin/(protected)/utilisateurs/actions";
+import { setUserRoleAction, deleteUserAction } from "@/app/admin/(protected)/utilisateurs/actions";
 
 export type UserRow = {
   id: string;
@@ -36,6 +36,7 @@ export type UserRow = {
 export function UsersTable({ users, currentUserId }: { users: UserRow[]; currentUserId: string }) {
   const [pending, startTransition] = useTransition();
   const [switchingRole, setSwitchingRole] = useState<UserRow | null>(null);
+  const [deleting, setDeleting] = useState<UserRow | null>(null);
 
   if (users.length === 0) {
     return (
@@ -100,6 +101,15 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
                       {u.role === "STAFF" ? <IconShieldOff size={15} /> : <IconShieldCheck size={15} />}
                       {u.role === "STAFF" ? "Repasser client" : "Passer staff"}
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      disabled={isSelf}
+                      onSelect={() => setDeleting(u)}
+                      className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                    >
+                      <IconTrash size={15} />
+                      Supprimer le compte
+                    </DropdownMenuItem>
                   </RowActions>
                 </TableCell>
               </TableRow>
@@ -136,6 +146,41 @@ export function UsersTable({ users, currentUserId }: { users: UserRow[]; current
               }}
             >
               Confirmer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!deleting} onOpenChange={(open) => !open && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer « {deleting?.name} » ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Le compte et son historique de fidélité sont définitivement supprimés. Cette action ne
+              peut pas être annulée. Un compte ayant déjà passé commande ne peut pas être supprimé
+              (l&apos;historique des commandes est conservé).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleting) {
+                  const target = deleting;
+                  startTransition(async () => {
+                    try {
+                      await deleteUserAction(target.id);
+                      toast("Compte supprimé");
+                    } catch (err) {
+                      toast(err instanceof Error ? err.message : "Suppression impossible.");
+                    }
+                  });
+                }
+                setDeleting(null);
+              }}
+            >
+              Supprimer
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
