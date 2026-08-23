@@ -25,7 +25,7 @@ export function PaymentVerifyDialog({
 
   return (
     <Dialog open={!!target} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
         {target && (
           <>
             <DialogHeader>
@@ -40,7 +40,7 @@ export function PaymentVerifyDialog({
               <img
                 src={target.proofImageUrl}
                 alt="Capture de la preuve de paiement"
-                className="w-full rounded-lg border border-border"
+                className="w-full max-h-[60vh] object-contain mx-auto rounded-lg border border-border"
               />
             ) : (
               <p className="text-sm text-muted-foreground">Aucune capture envoyée par le client.</p>
