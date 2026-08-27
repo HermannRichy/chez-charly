@@ -5,6 +5,7 @@ import { requireStaff } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { nextStatus, prevStatus, STATUS_PUSH_BODY } from "@/lib/order-status";
 import { sendPushToUser } from "@/lib/push";
+import { sendPaymentVerifiedEmail } from "@/lib/email";
 
 function revalidate() {
   revalidatePath("/admin");
@@ -17,7 +18,7 @@ export async function verifyPaymentAction(orderId: string) {
   const order = await prisma.order.update({
     where: { id: orderId },
     data: { verified: true },
-    select: { userId: true, orderNumber: true },
+    select: { userId: true, orderNumber: true, customerName: true, user: { select: { email: true } } },
   });
   revalidate();
 
@@ -25,6 +26,12 @@ export async function verifyPaymentAction(orderId: string) {
     title: `Commande ${order.orderNumber}`,
     body: "Paiement vérifié - votre commande est confirmée.",
     url: `/suivi/${order.orderNumber}`,
+  });
+
+  await sendPaymentVerifiedEmail({
+    to: order.user.email,
+    name: order.customerName,
+    orderNumber: order.orderNumber,
   });
 }
 

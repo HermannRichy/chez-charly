@@ -4,6 +4,8 @@ import { randomInt } from "crypto";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
+import { sendPushToUser, sendPushToStaff } from "@/lib/push";
+import { sendWheelPrizeEmail, sendWheelPrizeStaffEmail } from "@/lib/email";
 
 /**
  * Le tirage doit être décidé côté serveur (README) : le client ne fait
@@ -29,5 +31,23 @@ export async function spinAction(): Promise<{ prizeIndex: number; prizeLabel: st
 
   revalidatePath("/fidelite");
 
-  return { prizeIndex: index, prizeLabel: prizes[index].label };
+  const prizeLabel = prizes[index].label;
+
+  await sendPushToUser(user.id, {
+    title: "Vous avez gagné à la roue !",
+    body: prizeLabel,
+    url: "/fidelite",
+  });
+
+  await sendWheelPrizeEmail({ to: user.email, name: user.name, prizeLabel });
+
+  await sendPushToStaff({
+    title: "Lot de roue à préparer",
+    body: `${user.name} a gagné « ${prizeLabel} »`,
+    url: "/admin/utilisateurs",
+  });
+
+  await sendWheelPrizeStaffEmail({ customerName: user.name, prizeLabel });
+
+  return { prizeIndex: index, prizeLabel };
 }

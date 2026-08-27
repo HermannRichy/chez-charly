@@ -5,6 +5,7 @@ import { nextCookies } from "better-auth/next-js";
 import { prisma } from "@/lib/prisma";
 import { ac, STAFF, CLIENT } from "@/lib/auth-permissions";
 import { sendPushToStaff } from "@/lib/push";
+import { sendWelcomeEmail, sendNewAccountStaffEmail, sendPasswordResetEmail } from "@/lib/email";
 
 /**
  * Un seul système de compte pour tout le monde (staff ET clients), comme
@@ -22,6 +23,9 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
+    async sendResetPassword({ user, url }) {
+      await sendPasswordResetEmail({ to: user.email, name: user.name, resetUrl: url });
+    },
   },
 
   user: {
@@ -42,6 +46,9 @@ export const auth = betterAuth({
             body: `${user.name} (${user.email}) vient de s'inscrire.`,
             url: "/admin/utilisateurs",
           });
+
+          await sendWelcomeEmail({ to: user.email, name: user.name });
+          await sendNewAccountStaffEmail({ name: user.name, email: user.email });
         },
       },
     },

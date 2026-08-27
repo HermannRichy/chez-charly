@@ -9,6 +9,12 @@ import { getSelectedZone } from "@/lib/zone";
 import { getSettings, computeFee, computePoints } from "@/lib/pricing";
 import { getSessionUser } from "@/lib/session";
 import { sendPushToUser, sendPushToStaff } from "@/lib/push";
+import {
+  sendOrderConfirmationEmail,
+  sendNewOrderStaffEmail,
+  sendTierReachedEmail,
+  sendTierReachedStaffEmail,
+} from "@/lib/email";
 import { fmt } from "@/lib/format";
 
 const schema = z
@@ -133,6 +139,27 @@ export async function confirmOrderAction(
     url: `/admin/commandes/${result.order.id}`,
   });
 
+  await sendNewOrderStaffEmail({
+    orderNumber: result.order.orderNumber,
+    customerName: data.customerName,
+    total,
+    orderId: result.order.id,
+  });
+
+  const paymentInfo = await prisma.paymentMethod.findUnique({
+    where: { provider: data.paymentMethod as PaymentProvider },
+    select: { label: true },
+  });
+
+  await sendOrderConfirmationEmail({
+    to: user.email,
+    customerName: data.customerName,
+    orderNumber: result.order.orderNumber,
+    items: cart.lines.map((l) => ({ name: l.name, qty: l.quantity, price: l.unitPrice })),
+    total,
+    paymentLabel: paymentInfo?.label ?? data.paymentMethod,
+  });
+
   if (result.topTierCrossed) {
     await sendPushToUser(user.id, {
       title: "Palier de fidélité atteint !",
@@ -144,6 +171,20 @@ export async function confirmOrderAction(
       title: "Lot de fidélité à préparer",
       body: `${data.customerName} a débloqué « ${result.topTierCrossed.name} » - ${result.topTierCrossed.reward}`,
       url: `/admin/commandes/${result.order.id}`,
+    });
+
+    await sendTierReachedEmail({
+      to: user.email,
+      name: data.customerName,
+      tierName: result.topTierCrossed.name,
+      reward: result.topTierCrossed.reward,
+    });
+
+    await sendTierReachedStaffEmail({
+      customerName: data.customerName,
+      tierName: result.topTierCrossed.name,
+      reward: result.topTierCrossed.reward,
+      orderId: result.order.id,
     });
   }
 
