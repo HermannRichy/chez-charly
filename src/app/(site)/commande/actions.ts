@@ -115,9 +115,12 @@ export async function confirmOrderAction(
         points: after,
         spinsAvailable: { increment: crossedTiers.length },
         // Garde le profil à jour pour préremplir le prochain checkout, sans
-        // écraser le nom (celui du compte reste la source pour l'admin).
+        // écraser le nom (celui du compte reste la source pour l'admin). Pour
+        // un retrait, `data.address` vaut "Retrait au resto" (CheckoutFlow) :
+        // pas une vraie adresse, on ne l'enregistre pas sur le profil pour ne
+        // pas la reproposer au client la prochaine fois qu'il livre.
         phone: data.customerPhone,
-        address: data.address,
+        address: zone.isPickup ? undefined : data.address,
       },
     });
 
