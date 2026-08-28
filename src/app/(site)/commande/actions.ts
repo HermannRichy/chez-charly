@@ -156,7 +156,8 @@ export async function confirmOrderAction(
     customerName: data.customerName,
     orderNumber: result.order.orderNumber,
     items: cart.lines.map((l) => ({ name: l.name, qty: l.quantity, price: l.unitPrice })),
-    total,
+    subtotal: cart.subtotal,
+    deliveryFee: fee,
     paymentLabel: paymentInfo?.label ?? data.paymentMethod,
   });
 

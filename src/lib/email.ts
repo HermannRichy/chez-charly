@@ -69,7 +69,8 @@ export async function sendOrderConfirmationEmail(input: {
   customerName: string;
   orderNumber: string;
   items: { name: string; qty: number; price: number }[];
-  total: number;
+  subtotal: number;
+  deliveryFee: number;
   paymentLabel: string;
 }) {
   const rows = input.items
@@ -79,13 +80,20 @@ export async function sendOrderConfirmationEmail(input: {
     )
     .join("");
 
+  const deliveryLabel = input.deliveryFee === 0 ? "Gratuite" : fmt(input.deliveryFee);
+  const total = input.subtotal + input.deliveryFee;
+
   const body = `
     ${heading(`Commande ${input.orderNumber} confirmée`)}
     ${paragraph(`Bonjour ${input.customerName}, on a bien reçu votre commande - merci !`)}
     <table style="width:100%;border-collapse:collapse;margin:16px 0;">
       ${rows}
+      <tr><td style="padding-top:10px;color:${COLOR.creamText};font-size:14px;">Sous-total</td>
+          <td style="padding-top:10px;text-align:right;color:${COLOR.creamText};font-size:14px;">${fmt(input.subtotal)}</td></tr>
+      <tr><td style="color:${COLOR.creamText};font-size:14px;">Livraison</td>
+          <td style="text-align:right;color:${COLOR.creamText};font-size:14px;">${deliveryLabel}</td></tr>
       <tr><td style="padding-top:10px;border-top:1px solid ${COLOR.border};font-weight:bold;color:${COLOR.ink};">Total</td>
-          <td style="padding-top:10px;border-top:1px solid ${COLOR.border};text-align:right;font-weight:bold;color:${COLOR.deep};">${fmt(input.total)}</td></tr>
+          <td style="padding-top:10px;border-top:1px solid ${COLOR.border};text-align:right;font-weight:bold;color:${COLOR.deep};">${fmt(total)}</td></tr>
     </table>
     ${paragraph(`Paiement : ${input.paymentLabel}`)}
     ${ctaButton(`${SITE_URL}/suivi/${input.orderNumber}`, "Suivre ma commande")}
@@ -160,10 +168,10 @@ export async function sendWheelPrizeEmail(input: { to: string; name: string; pri
 
 // ─── Admin (staff) ────────────────────────────────────────────────────────
 
+// Boîte partagée du resto plutôt que l'email personnel de chaque compte
+// STAFF - un seul destinataire à surveiller, pas un par compte.
 async function sendToStaff(subject: string, bodyHtml: string) {
-  const { prisma } = await import("@/lib/prisma");
-  const staff = await prisma.user.findMany({ where: { role: "STAFF" }, select: { email: true } });
-  await Promise.all(staff.map((s) => send(s.email, subject, bodyHtml)));
+  await send(FROM, subject, bodyHtml);
 }
 
 export async function sendNewOrderStaffEmail(input: {
